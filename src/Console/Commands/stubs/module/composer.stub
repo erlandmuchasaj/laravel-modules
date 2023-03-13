@@ -1,0 +1,65 @@
+{
+    "name": "modules/SnakeModuleName",
+    "type": "library",
+    "description": "A Generic module for the EMCMS application functionalities",
+    "homepage": "https://github.com/erlandmuchasaj/laravel-modules",
+    "minimum-stability": "stable",
+    "prefer-stable": true,
+    "version": "1.0.0",
+    "license": "proprietary",
+    "keywords": [
+        "emcms",
+        "erland",
+        "laravel",
+        "starter",
+        "modules",
+        "module",
+        "modular",
+        "SnakeModuleName"
+    ],
+    "authors": [
+        {
+            "name": "Erland Muchasaj",
+            "email": "erland.muchasaj@gmail.com",
+            "homepage": "https://erlandmuchasaj.tech/",
+            "role": "Developer"
+        }
+    ],
+    "support": {
+        "issues": "https://github.com/erlandmuchasaj/laravel-modules/issues",
+        "source": "https://github.com/erlandmuchasaj/laravel-modules",
+        "email": "erland.muchasaj@gmail.com",
+        "irc": "irc://irc.freenode.org/composer"
+    },
+    "require": {},
+    "require-dev": {},
+    "autoload": {
+        "psr-4": {
+            "Modules\\ModuleName\\": "src/",
+            "Modules\\ModuleName\\Database\\Factories\\": "database/factories/",
+            "Modules\\ModuleName\\Database\\Seeders\\": "database/seeders/"
+        },
+        "files": [
+            "src/helpers.php"
+        ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Modules\\ModuleName\\Tests\\": "tests/"
+        }
+    },
+    "config": {
+        "sort-packages": true,
+        "preferred-install": "dist",
+        "optimize-autoloader": true
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Modules\\ModuleName\\Providers\\AppServiceProvider"
+            ],
+            "aliases": {
+            }
+        }
+    }
+}

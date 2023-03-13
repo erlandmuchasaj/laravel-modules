@@ -1,0 +1,19 @@
+<?php
+
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
+
+/*
+|--------------------------------------------------------------------------
+| API Routes [DummySnakeModuleName]
+|--------------------------------------------------------------------------
+|
+| Here is where you can register API routes for your module. These
+| routes are loaded by the DummySnakeModuleName within a group which
+| is assigned the "api" middleware group. Enjoy building your API!
+|
+*/
+
+Route::get('/DummySnakeModuleName', function (Request $request) {
+    return 'DummyModuleName module configured successfully!';
+})->name('{{snakeModuleName}}');

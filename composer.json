@@ -1,0 +1,78 @@
+{
+    "name": "erlandmuchasaj/laravel-modules",
+    "type": "library",
+    "description": "Laravel modules management.",
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "homepage": "https://github.com/erlandmuchasaj/laravel-modules",
+    "license": "MIT",
+    "version": "1.0.0",
+    "keywords": [
+        "modules",
+        "module",
+        "modular",
+        "hmvc",
+        "ddd",
+        "package",
+        "erland",
+        "laravel"
+    ],
+    "autoload": {
+        "psr-4": {
+            "ErlandMuchasaj\\Modules\\": "src/"
+        },
+        "files": [
+            "src/helpers.php"
+        ]
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "ErlandMuchasaj\\Modules\\Providers\\ModulesServiceProvider"
+            ],
+            "aliases": {
+                "Module": "ErlandMuchasaj\\Modules\\Facades\\Module"
+            }
+        }
+    },
+    "authors": [
+        {
+            "name": "Erland Muchasaj",
+            "email": "erland.muchasaj@gmail.com",
+            "homepage": "https://erlandmuchasaj.tech/",
+            "role": "Developer"
+        }
+    ],
+    "support": {
+        "issues": "https://github.com/erlandmuchasaj/laravel-modules/issues",
+        "source": "https://github.com/erlandmuchasaj/laravel-modules",
+        "email": "erland.muchasaj@gmail.com",
+        "irc": "irc://irc.freenode.org/composer"
+    },
+    "funding": [
+        {
+            "type": "patreon",
+            "url": "https://www.patreon.com/erlandmuchasaj"
+        },
+        {
+            "type": "Ko-fi",
+            "url": "https://ko-fi.com/erlandmuchasaj"
+        },
+        {
+            "type": "PayPal",
+            "url": "https://paypal.me/emcms?country.x=AL&locale.x=en_US"
+        }
+    ],
+    "config": {
+        "sort-packages": true,
+        "preferred-install": "dist",
+        "optimize-autoloader": true
+    },
+    "require": {
+        "php": "^8.0|^8.1|^8.2",
+        "ext-json": "*"
+    },
+    "require-dev": {
+        "laravel/framework": "^8.0|^9.0|^10.0"
+    }
+}

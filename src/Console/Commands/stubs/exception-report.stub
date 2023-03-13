@@ -1,0 +1,16 @@
+<?php
+
+namespace DummyNamespace;
+
+use Exception;
+
+class DummyClass extends Exception
+{
+    /**
+     * Report the exception.
+     */
+    public function report(): void
+    {
+        //
+    }
+}
