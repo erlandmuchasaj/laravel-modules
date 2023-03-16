@@ -31,6 +31,7 @@ class ConsoleServiceProvider extends ServiceProvider
         Commands\ControllerMakeCommand::class,
         Commands\ModelMakeCommand::class,
         Commands\NotificationMakeCommand::class,
+        Commands\ExtractTranslationsCommand::class,
         Commands\ObserverMakeCommand::class,
         Commands\PolicyMakeCommand::class,
         Commands\ProviderMakeCommand::class,

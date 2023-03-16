@@ -337,13 +337,16 @@ class ModuleMakeCommand extends GeneratorCommand
         // auto wire the path repository for modules loading.
         // this is done only once.
         $exists = collect(Arr::wrap($phpArray['repositories'] ?? []))->contains(function ($value) use ($folder) {
-            return $value['type'] === 'path' && Str::contains($value['url'], "$folder/*");
+            return $value['type'] === 'path' && Str::contains($value['url'], "./$folder/*");
         });
 
         if (! $exists) {
             $phpArray['repositories'][] = [
                 'type' => 'path',
-                'url' => "$folder/*",
+                'url' => "./$folder/*",
+                // 'option' => [
+                //     'symlink' => true,
+                // ]
             ];
         }
 
