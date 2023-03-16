@@ -1,7 +1,8 @@
 <?php
 
-namespace ErlandMuchasaj\Modules\Providers;
+namespace ErlandMuchasaj\Modules;
 
+use ErlandMuchasaj\Modules\Providers\ConsoleServiceProvider;
 use Illuminate\Support\ServiceProvider;
 
 class ModulesServiceProvider extends ServiceProvider
@@ -14,11 +15,11 @@ class ModulesServiceProvider extends ServiceProvider
     /**
      * Booting the package.
      */
-    public function boot()
+    public function boot(): void
     {
         if ($this->app->runningInConsole()) {
             $this->publishes([
-                __DIR__.'/../../config/config.php' => config_path(static::$abstract.'.php'),
+                __DIR__.'/../config/config.php' => config_path(static::$abstract.'.php'),
             ], 'config');
         }
     }
@@ -26,10 +27,10 @@ class ModulesServiceProvider extends ServiceProvider
     /**
      * Register all modules.
      */
-    public function register()
+    public function register(): void
     {
         $this->mergeConfigFrom(
-            __DIR__.'/../../config/config.php',
+            __DIR__.'/../config/config.php',
             static::$abstract
         );
 

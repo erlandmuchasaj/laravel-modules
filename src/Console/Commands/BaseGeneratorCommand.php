@@ -222,6 +222,8 @@ abstract class BaseGeneratorCommand extends GeneratorCommand
 
     /**
      * Get the console command arguments.
+     *
+     * @return array<int, array<int, mixed>>
      */
     protected function getArguments(): array
     {

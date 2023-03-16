@@ -337,7 +337,7 @@ class ModuleMakeCommand extends GeneratorCommand
         // auto wire the path repository for modules loading.
         // this is done only once.
         $exists = collect(Arr::wrap($phpArray['repositories'] ?? []))->contains(function ($value) use ($folder) {
-            return $value['type'] === 'path' && Str::contains($value['url'], "$folder/");
+            return $value['type'] === 'path' && Str::contains($value['url'], "$folder/*");
         });
 
         if (! $exists) {
@@ -347,7 +347,9 @@ class ModuleMakeCommand extends GeneratorCommand
             ];
         }
 
-        $this->files->put('composer.json', json_encode($phpArray, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+        if ($file = json_encode($phpArray, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)) {
+            $this->files->put('composer.json', $file);
+        }
     }
 
     /**
@@ -368,6 +370,8 @@ class ModuleMakeCommand extends GeneratorCommand
 
     /**
      * Get the console command arguments.
+     *
+     * @return array<int, array<int, mixed>>
      */
     protected function getArguments(): array
     {
@@ -378,6 +382,8 @@ class ModuleMakeCommand extends GeneratorCommand
 
     /**
      * Get the console command options.
+     *
+     * @return array<int, array<int, mixed>>
      */
     protected function getOptions(): array
     {

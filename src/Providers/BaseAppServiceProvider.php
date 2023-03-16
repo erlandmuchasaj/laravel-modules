@@ -35,7 +35,7 @@ abstract class BaseAppServiceProvider extends ServiceProvider
      * SeedServiceProvider::class,
      * @example
      *
-     * @return array<int, class-string>
+     * @var array<int, class-string>
      */
     protected array $providers = [
     ];
@@ -55,7 +55,7 @@ abstract class BaseAppServiceProvider extends ServiceProvider
      *
      * @example Model::class => ModelObserver::class
      *
-     * @return array<class-string, class-string>
+     * @var array<class-string, class-string>
      */
     protected array $observers = [
     ];
@@ -65,7 +65,7 @@ abstract class BaseAppServiceProvider extends ServiceProvider
      *
      * @example 'alias' => Model::class
      *
-     * @return array<string, class-string>
+     * @var array<string, class-string>
      */
     protected array $aliases = [
     ];

@@ -2,7 +2,6 @@
 
 namespace ErlandMuchasaj\Modules\Console\Commands;
 
-use ErlandMuchasaj\Modules\Utils\EmCms;
 use Illuminate\Console\Command;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command as CommandAlias;
@@ -40,7 +39,6 @@ class AppVersion extends Command
     public function handle(): int
     {
         $this->comment('App version: Laravel v'.app()->version());
-        $this->comment('Platform version: '.EmCms::NAME.' v'.EmCms::VERSION);
 
         return CommandAlias::SUCCESS;
     }

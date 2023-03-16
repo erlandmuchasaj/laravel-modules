@@ -76,7 +76,9 @@ class MailMakeCommand extends BaseGeneratorCommand
             $this->files->makeDirectory(dirname($path), 0755, true);
         }
 
-        $this->files->put($path, file_get_contents(__DIR__.'/stubs/markdown.stub'));
+        if ($file = file_get_contents(__DIR__.'/stubs/markdown.stub')) {
+            $this->files->put($path, $file);
+        }
     }
 
     /**
@@ -138,6 +140,8 @@ class MailMakeCommand extends BaseGeneratorCommand
 
     /**
      * Get the console command options.
+     *
+     * @return array<int, array<int, mixed>>
      */
     protected function getOptions(): array
     {

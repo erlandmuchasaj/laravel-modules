@@ -64,9 +64,9 @@ class ModelMakeCommand extends BaseGeneratorCommand
             $this->input->setOption('seed', true);
             $this->input->setOption('migration', true);
             $this->input->setOption('controller', true);
-            // $this->input->setOption('resource', true);
             // $this->input->setOption('api', true);
             $this->input->setOption('policy', true);
+            $this->input->setOption('resource', true);
         }
 
         if ($this->option('traits')) {
@@ -125,6 +125,7 @@ class ModelMakeCommand extends BaseGeneratorCommand
             'module' => $this->getModuleInput(),
             'name' => "create_{$table}_table",
             '--create' => $table,
+            '--fullpath' => true,
         ]);
     }
 
@@ -229,6 +230,8 @@ class ModelMakeCommand extends BaseGeneratorCommand
 
     /**
      * Get the console command options.
+     *
+     * @return array<int, array<int, mixed>>
      */
     protected function getOptions(): array
     {

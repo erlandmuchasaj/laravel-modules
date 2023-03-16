@@ -71,6 +71,8 @@ class EventMakeCommand extends BaseGeneratorCommand
 
     /**
      * Get the console command options.
+     *
+     * @return array<int, array<int, mixed>>
      */
     protected function getOptions(): array
     {

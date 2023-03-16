@@ -126,6 +126,8 @@ class ControllerMakeCommand extends BaseGeneratorCommand
 
     /**
      * Build the replacements for a parent controller.
+     *
+     * @return array<string, string>
      */
     protected function buildParentReplacements(): array
     {
@@ -152,6 +154,9 @@ class ControllerMakeCommand extends BaseGeneratorCommand
 
     /**
      * Build the model replacement values.
+     *
+     * @param  array<string, string>  $replace
+     * @return array<string, string>
      */
     protected function buildModelReplacements(array $replace): array
     {
@@ -195,6 +200,9 @@ class ControllerMakeCommand extends BaseGeneratorCommand
 
     /**
      * Build the model replacement values.
+     *
+     * @param  array<string, string>  $replace
+     * @return array<string, string>
      */
     protected function buildFormRequestReplacements(array $replace, string $modelClass): array
     {
@@ -232,6 +240,8 @@ class ControllerMakeCommand extends BaseGeneratorCommand
 
     /**
      * Generate the form requests for the given model and classes.
+     *
+     * @return array<int, string>
      */
     protected function generateFormRequests(string $modelClass, string $storeRequestClass, string $updateRequestClass): array
     {
@@ -254,6 +264,8 @@ class ControllerMakeCommand extends BaseGeneratorCommand
 
     /**
      * Get the console command options.
+     *
+     * @return array<int, array<int, mixed>>
      */
     protected function getOptions(): array
     {

@@ -27,7 +27,7 @@
     "extra": {
         "laravel": {
             "providers": [
-                "ErlandMuchasaj\\Modules\\Providers\\ModulesServiceProvider"
+                "ErlandMuchasaj\\Modules\\ModulesServiceProvider"
             ],
             "aliases": {
                 "Module": "ErlandMuchasaj\\Modules\\Facades\\Module"

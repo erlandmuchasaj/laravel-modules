@@ -2,7 +2,6 @@
 
 namespace ErlandMuchasaj\Modules\Console\Commands;
 
-use ErlandMuchasaj\Modules\Utils\EmCms;
 use Exception;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Artisan;
@@ -13,11 +12,6 @@ use Symfony\Component\Console\Command\Command as CommandAlias;
 #[AsCommand(name: 'app:install')]
 class AppInstall extends Command
 {
-    /**
-     * The root namespace to assume when generating URLs to actions.
-     */
-    private string $base = EmCms::NAME;
-
     /**
      * The name and signature of the console command.
      *
@@ -61,7 +55,7 @@ class AppInstall extends Command
         $this->info((string) $migrate);
 
         // running `php artisan db:seed`
-        $this->warn("Step: seeding basic data for $this->base kickstart...");
+        $this->warn('Step: seeding basic data for kickstarter...');
         $result = shell_exec('php artisan db:seed');
         $this->info((string) $result);
 
@@ -111,7 +105,7 @@ class AppInstall extends Command
             File::copy('.env.example', '.env');
             Artisan::call('key:generate');
 
-            $appName = $this->anticipate('What is your Application name?', [$this->base], $this->base);
+            $appName = $this->anticipate('What is your Application name?', ['modules'], 'modules');
             $this->envUpdate('APP_NAME=', $appName);
 
             $domain = $this->anticipate('What is your domain? ex: example.com', ['localhost'], 'localhost');
@@ -126,7 +120,7 @@ class AppInstall extends Command
 
     public function addDatabaseDetails(): void
     {
-        $dbName = $this->ask("What is your database name to be used by $this->base");
+        $dbName = $this->ask('What is your database name to be used?');
         $dbUser = $this->anticipate('What is your database username', ['root'], 'root');
         $dbPass = $this->secret('What is your database password');
         $this->envUpdate('DB_DATABASE=', $dbName);
@@ -152,9 +146,13 @@ class AppInstall extends Command
      */
     protected function emcmsAlreadyInstalled(): bool
     {
-        $composer = json_decode(file_get_contents(base_path('composer.json')), true);
+        if ($file = file_get_contents(base_path('composer.json'))) {
+            $composer = json_decode($file, true);
 
-        return isset($composer['require']['modules/core']);
+            return isset($composer['require']['modules/core']);
+        }
+
+        return false;
     }
 
     // /**

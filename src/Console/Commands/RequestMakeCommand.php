@@ -60,6 +60,8 @@ class RequestMakeCommand extends BaseGeneratorCommand
 
     /**
      * Get the console command arguments.
+     *
+     * @return array<int, array<int, mixed>>
      */
     protected function getOptions(): array
     {

@@ -44,8 +44,8 @@ class TraitMakeCommand extends BaseGeneratorCommand
      */
     protected function getDefaultNamespace($rootNamespace): string
     {
-        if ($this->option('model')) {
-            return $rootNamespace.'\\Models\\'.$this->option('model');
+        if ($model = $this->option('model')) {
+            return $rootNamespace.'\\Models\\'.$model;
         } else {
             return $rootNamespace.'\\Traits';
         }
@@ -53,6 +53,8 @@ class TraitMakeCommand extends BaseGeneratorCommand
 
     /**
      * Get the console command options.
+     *
+     * @return array<int, array<int, mixed>>
      */
     protected function getOptions(): array
     {
