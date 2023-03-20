@@ -36,7 +36,7 @@ And also it will add automatically repositories
     "repositories": [
         {
             "type": "path",
-            "url": "modules/*"
+            "url": "./modules/*"
         }
     ]
 ```
@@ -47,7 +47,7 @@ and you are good to go.
 ## Creating new module
 
 Here everything is done inside a Module.
-Basically one module is a laravel within another Laravel application with all its components, views,
+Basically one module is a Laravel within another Laravel application with all its components, views,
 routes, middleware, events, database, seeders, factories and much, much more.
 
 ```bash
@@ -89,8 +89,138 @@ php artisan module:make-seeder        Create a new seeder class
 php artisan module:make-test          Create a new test class
 php artisan module:make-trait         Make trait
 ```
----
+If you want to register _Events_, _Policies_, _Observers_, _Middleware_, _Commands_, _Providers_ etc. you can do so on 
+`./modules/ModuleName/Providers/EventServiceProvider` and `./modules/ModuleName/Providers/AppServiceProvider`
 
+### Examples:
+
+Registering new provider. Go to `./modules/ModuleName/Providers/AppServiceProvider` and add the provider to 
+`$providers` array as follows:
+```php
+    /**
+     * Get the services provided by the provider.
+     *
+     * @var array<int, class-string>
+     */
+    protected array $providers = [
+        ...
+        NewServiceProvider::class, // <= new provider added here
+    ];
+```
+
+Subscribing and/or listening to events. Go to `./modules/ModuleName/Providers/EventServiceProvider` and on the 
+`$subscribe` array add the EventSubscriber listener:
+```php
+    /**
+     * Class event subscribers.
+     *
+     * @var array<int, class-string>
+     */
+    protected $subscribe = [
+        AnnouncementEventListener::class
+    ];
+```
+
+Or you can just listen to events as you normally would in Laravel:
+```php
+    /**
+     * The event listener mappings for the application.
+     *
+     * @var array<class-string, array<int, class-string>>
+     */
+    protected $listen = [
+        Registered::class => [
+            SendEmailVerificationNotification::class,
+        ],
+    ];
+```
+
+Adding new policy. Go to `./modules/ModuleName/Providers/AppServiceProvider` and add to `$policies` array the `Model` 
+and corresponding `Policy` as follows:
+```php
+    /**
+     * The policy mappings for the application.
+     * Announcement::class is the model <==
+     * 
+     * @var array<class-string, class-string>
+     */
+    protected array $policies = [
+        Announcement::class => AnnouncementPolicy::class,
+    ];
+
+```
+
+Adding new observer. Go to `./modules/ModuleName/Providers/AppServiceProvider` and add to `$observers` array the 
+`Model` and the corresponding `Observer` as follows:
+```php
+    /**
+     * The policy mappings for the application.
+     * Announcement::class is the model <==
+     * 
+     * @var array<class-string, class-string>
+     */
+    protected array $policies = [
+        Announcement::class => AnnouncementObserver::class,
+    ];
+
+```
+
+Adding new command. Go to `./modules/ModuleName/Providers/AppServiceProvider` and add to `$commands` array the name 
+of the command as follows:
+```php
+    /**
+     * The available command shortname.
+     *
+     * @var array<int, class-string>
+     */
+    protected array $commands = [
+        AppVersion::class,
+        SendAnnouncementNotifications::class
+    ];
+```
+
+Middleware. There are 3 types of middleware that you can add. Global, Grouped and route. 
+```php
+    /**
+     * The application's global middleware stack.
+     *
+     * @var array<int, class-string>
+     */
+    protected array $middleware = [
+        ...
+        AddXHeader::class, // <== Add global middleware here
+    ];
+
+    /**
+     * The application's route middleware groups.
+     *
+     * @var array<string, array<int, class-string>>
+     */
+    protected array $middlewareGroups = [
+        'web' => [
+            RememberLocale::class,
+        ],
+        'api' => [
+            IdempotencyMiddleware::class,
+        ],
+        // <== Add grouped middleware here. you can add to existing group or create new groups.
+    ];
+
+    /**
+     * The application's route middleware.
+     * These middleware may be assigned to group or used individually.
+     *
+     * @var array<string, class-string>
+     */
+    protected array $routeMiddleware = [
+        ...
+        'ip_whitelist' => IpWhitelist::class, // <== Add route middleware here
+    ];
+
+```
+
+
+---
 ## Support me
 
 I invest a lot of time and resources into creating [best in class open source packages](https://github.com/erlandmuchasaj?tab=repositories).
