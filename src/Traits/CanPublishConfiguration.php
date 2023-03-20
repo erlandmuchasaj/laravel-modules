@@ -2,7 +2,6 @@
 
 namespace ErlandMuchasaj\Modules\Traits;
 
-use ErlandMuchasaj\Modules\Utils\EmCms;
 use Illuminate\Support\Str;
 
 trait CanPublishConfiguration
@@ -10,7 +9,7 @@ trait CanPublishConfiguration
     /**
      * The root namespace to assume when generating URLs to actions.
      */
-    protected string $base = EmCms::NAME;
+    protected string $base = 'modules';
 
     /**
      * Publish the given configuration file name (without extension) and the given module
@@ -21,7 +20,7 @@ trait CanPublishConfiguration
             return;
         }
 
-        $this->mergeConfigFrom($this->getModuleConfigFilePath($module, $fileName), Str::lower("{$this->base}.{$module}.{$fileName}"));
+        $this->mergeConfigFrom($this->getModuleConfigFilePath($module, $fileName), Str::lower("$this->base.{$module}.{$fileName}"));
 
         if (app()->runningInConsole()) {
             $this->publishes([
