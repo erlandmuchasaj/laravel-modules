@@ -86,6 +86,7 @@ class ModuleMakeCommand extends GeneratorCommand
         $config = $this->laravel['config'];
 
         $folder = $config->get('modules.folder', 'modules') ?: 'modules';
+
         $namespace = $config->get('modules.namespace', 'Modules') ?: 'Modules';
 
         // Next, We will check to see if the Module folder already exists. If it does, we don't want
@@ -115,7 +116,7 @@ class ModuleMakeCommand extends GeneratorCommand
         $seederStub = $this->files->get(__DIR__.'/stubs/seeder.stub');
         $this->files->put(
             "$folder/$moduleName/database/seeders/DatabaseSeeder.php",
-            $this->replaceNamespace($seederStub, $namespace.'\\'.$moduleName.'\\Database\Seeders\DatabaseSeeder')
+            $this->replaceNamespace($seederStub, $namespace.'\\'.$moduleName.'\\Database\\Seeders\\DatabaseSeeder')
                 ->replaceModuleName($seederStub, $moduleName)
                 ->replaceClass($seederStub, 'DatabaseSeeder')
         );
