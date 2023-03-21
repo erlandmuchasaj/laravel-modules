@@ -1,7 +1,7 @@
 {
     "name": "modules/SnakeModuleName",
     "type": "library",
-    "description": "A Generic module for the EMCMS application functionalities",
+    "description": "A Generic module for laravel modules package.",
     "homepage": "https://github.com/erlandmuchasaj/laravel-modules",
     "minimum-stability": "stable",
     "prefer-stable": true,

@@ -96,7 +96,6 @@ class AppServiceProvider extends BaseAppServiceProvider
      */
     public function boot(): void
     {
-        logger('AppServiceProvider::boot => '. $this->module);
         //
         parent::boot();
     }
@@ -108,7 +107,6 @@ class AppServiceProvider extends BaseAppServiceProvider
      */
     public function register(): void
     {
-        logger('AppServiceProvider::register => '. $this->module);
         //
         parent::register();
     }

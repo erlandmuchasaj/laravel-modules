@@ -141,6 +141,8 @@ class ObserverMakeCommand extends BaseGeneratorCommand
             return;
         }
 
+        //  $this->components->bulletList($this->possibleModels());
+
         $model = $this->components->askWithCompletion(
             'What model should this observer apply to?',
             $this->possibleModels(),

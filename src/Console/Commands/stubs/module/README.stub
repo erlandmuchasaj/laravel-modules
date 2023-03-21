@@ -1,6 +1,7 @@
-# Very short description of the package
+# Very short description of the module
 
-This is where your description should go. Try and limit it to a paragraph or two, and maybe throw in a mention of what PSRs you support to avoid any confusion with users and contributors.
+This is where your description should go.
+Try and limit it to a paragraph or two, and maybe throw in a mention of what PSRs you support to avoid any confusion with users and contributors.
 
 ## Usage
 
@@ -29,7 +30,6 @@ Please see [SECURITY](SECURITY.md) for details.
 ## Credits
 
 -   [Erland muchasaj](https://github.com/erlandmuhcasaj)
--   [All Contributors](../../contributors)
 
 ## License
 

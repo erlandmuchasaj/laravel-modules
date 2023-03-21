@@ -116,15 +116,6 @@ abstract class BaseGeneratorCommand extends GeneratorCommand
      */
     protected function possibleModels(): array
     {
-        // $pathSegments = [
-        //     'modules',
-        //     $this->getModuleInput(),
-        //     'src',
-        //     'Models'
-        // ];
-        // // generate a path of modules/ModuleName/src/Models
-        // $modelPath = implode(DIRECTORY_SEPARATOR, $pathSegments);
-
         $modelPath = base_path('modules'.DIRECTORY_SEPARATOR.$this->getModuleInput().DIRECTORY_SEPARATOR.'src'
             .DIRECTORY_SEPARATOR.'Models');
 
@@ -132,7 +123,7 @@ abstract class BaseGeneratorCommand extends GeneratorCommand
             $modelPath = is_dir(app_path('Models')) ? app_path('Models') : app_path();
         }
 
-        return collect((new Finder)->files()->depth(0)->in($modelPath))
+        return collect((new Finder)->files()->depth(['>= 0', '< 2'])->in($modelPath))
             ->map(fn ($file) => $file->getBasename('.php'))
             ->values()
             ->all();
@@ -146,15 +137,6 @@ abstract class BaseGeneratorCommand extends GeneratorCommand
      */
     protected function possibleEvents(): array
     {
-        // $pathSegments = [
-        //     'modules',
-        //     $this->getModuleInput(),
-        //     'src',
-        //     'Models'
-        // ];
-        // // generate a path of modules/ModuleName/src/Events
-        // $eventPath = implode(DIRECTORY_SEPARATOR, $pathSegments);
-
         $eventPath = base_path('modules'.DIRECTORY_SEPARATOR.$this->getModuleInput().DIRECTORY_SEPARATOR.'src'
             .DIRECTORY_SEPARATOR.'Events');
 
@@ -185,7 +167,7 @@ abstract class BaseGeneratorCommand extends GeneratorCommand
     {
         $config = $this->laravel['config'];
 
-        return  $config->get('modules.namespace', 'Modules') ?: 'Modules';
+        return $config->get('modules.namespace', 'Modules') ?: 'Modules';
     }
 
     /**

@@ -20,7 +20,7 @@ trait CanPublishConfiguration
             return;
         }
 
-        $this->mergeConfigFrom($this->getModuleConfigFilePath($module, $fileName), Str::lower("$this->base.{$module}.{$fileName}"));
+        $this->mergeConfigFrom($this->getModuleConfigFilePath($module, $fileName), Str::lower("$this->base.$module.$fileName"));
 
         if (app()->runningInConsole()) {
             $this->publishes([
@@ -34,7 +34,7 @@ trait CanPublishConfiguration
      */
     private function getModuleConfigFilePath(string $module, string $file): string
     {
-        return $this->getModulePath($module).DIRECTORY_SEPARATOR.'config'.DIRECTORY_SEPARATOR."{$file}.php";
+        return $this->getModulePath($module).DIRECTORY_SEPARATOR.'config'.DIRECTORY_SEPARATOR."$file.php";
     }
 
     private function getModulePath(string $module): string
