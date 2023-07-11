@@ -75,7 +75,13 @@ abstract class BaseSeedServiceProvider extends ServiceProvider
         echo htmlspecialchars("\033[1;33mSeeding:\033[0m $this->namespace\n");
         $startTime = microtime(true);
 
-        Artisan::call('db:seed', ['--class' => $this->namespace, '--force' => '', '-n' => '']);
+        Artisan::call('db:seed', [
+            '--class' => $this->namespace,
+            '--force' => true,
+            '--quiet' => true,
+            '--no-interaction' => true,
+            '--no-ansi' => true,
+        ]);
 
         $runTime = round(microtime(true) - $startTime, 2);
         echo htmlspecialchars("\033[0;32mSeeded:\033[0m $this->namespace ($runTime seconds)\n");

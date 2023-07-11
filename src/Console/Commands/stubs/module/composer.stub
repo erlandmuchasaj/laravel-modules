@@ -31,7 +31,9 @@
         "email": "erland.muchasaj@gmail.com",
         "irc": "irc://irc.freenode.org/composer"
     },
-    "require": {},
+    "require": {
+        "erlandmuchasaj/laravel-modules": "^1.0",
+    },
     "require-dev": {},
     "autoload": {
         "psr-4": {

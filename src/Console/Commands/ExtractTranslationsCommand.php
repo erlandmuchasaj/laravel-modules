@@ -86,7 +86,7 @@ class ExtractTranslationsCommand extends Command
         return $allKeys;
     }
 
-    private function getTranslationKeysFromDir(array &$keys, string $dirPath, string $fileExt = 'php')
+    private function getTranslationKeysFromDir(array &$keys, string $dirPath, string $fileExt = 'php'): void
     {
         $files = $this->glob($dirPath.DIRECTORY_SEPARATOR."*.$fileExt", GLOB_BRACE);
         $translationMethods = ['__']; // config
@@ -99,7 +99,7 @@ class ExtractTranslationsCommand extends Command
         }
     }
 
-    private function getTranslationKeysFromFunction(array &$keys, string $functionName, string $content)
+    private function getTranslationKeysFromFunction(array &$keys, string $functionName, string $content): void
     {
         preg_match_all("#$functionName *\( *((['\"])((?:\\\\\\2|.)*?)\\2)#", $content, $matches);
 
@@ -153,7 +153,7 @@ class ExtractTranslationsCommand extends Command
         return $current;
     }
 
-    private function writeNewTranslationFile(string $filePath, array $translations)
+    private function writeNewTranslationFile(string $filePath, array $translations): void
     {
         file_put_contents($filePath, json_encode($translations, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
     }
