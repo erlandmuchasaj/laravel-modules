@@ -36,6 +36,7 @@ class ExtractTranslationsCommand extends Command
 
         foreach ($translationFiles as $file) {
             $translationData = $this->getAlreadyTranslatedKeys($file);
+
             $added = [];
 
             $this->alert('Language: '.str_replace('.json', '', basename($file)));
@@ -65,6 +66,9 @@ class ExtractTranslationsCommand extends Command
         return CommandAlias::SUCCESS;
     }
 
+    /**
+     * @return array<string, string>
+     */
     private function findProjectTranslationsKeys(): array
     {
         $allKeys = [];
@@ -86,8 +90,15 @@ class ExtractTranslationsCommand extends Command
         return $allKeys;
     }
 
+    /**
+     * @param array<string, string> $keys
+     * @param string $dirPath
+     * @param string $fileExt
+     * @return void
+     */
     private function getTranslationKeysFromDir(array &$keys, string $dirPath, string $fileExt = 'php'): void
     {
+
         $files = $this->glob($dirPath.DIRECTORY_SEPARATOR."*.$fileExt", GLOB_BRACE);
         $translationMethods = ['__']; // config
 
@@ -99,6 +110,12 @@ class ExtractTranslationsCommand extends Command
         }
     }
 
+    /**
+     * @param array<string, string> $keys
+     * @param string $functionName
+     * @param string $content
+     * @return void
+     */
     private function getTranslationKeysFromFunction(array &$keys, string $functionName, string $content): void
     {
         preg_match_all("#$functionName *\( *((['\"])((?:\\\\\\2|.)*?)\\2)#", $content, $matches);
@@ -126,6 +143,10 @@ class ExtractTranslationsCommand extends Command
         return glob($path.DIRECTORY_SEPARATOR.'*.json', GLOB_BRACE);
     }
 
+    /**
+     * @param string $filePath
+     * @return array<string, string>
+     */
     private function getAlreadyTranslatedKeys(string $filePath): array
     {
         if (! file_exists($filePath)) {
@@ -153,6 +174,11 @@ class ExtractTranslationsCommand extends Command
         return $current;
     }
 
+    /**
+     * @param string $filePath
+     * @param array<string, string> $translations
+     * @return void
+     */
     private function writeNewTranslationFile(string $filePath, array $translations): void
     {
         file_put_contents($filePath, json_encode($translations, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));

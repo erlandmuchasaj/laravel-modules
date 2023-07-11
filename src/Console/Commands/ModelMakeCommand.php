@@ -3,6 +3,7 @@
 namespace ErlandMuchasaj\Modules\Console\Commands;
 
 use Illuminate\Contracts\Filesystem\FileNotFoundException;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Input\InputInterface;
@@ -261,7 +262,8 @@ class ModelMakeCommand extends BaseGeneratorCommand
             return;
         }
 
-        collect($this->components->choice('Would you like any of the following?', [
+        /** @var array<int|string, mixed> $data */
+        $data = $this->components->choice('Would you like any of the following?', [
             'none',
             'all',
             'factory',
@@ -270,7 +272,9 @@ class ModelMakeCommand extends BaseGeneratorCommand
             'policy',
             'resource controller',
             'seed',
-        ], default: 0, multiple: true))
+        ], default: 0, multiple: true);
+
+        collect($data)
             ->reject('none')
             ->map(fn ($option) => match ($option) {
                 'resource controller' => 'resource',
