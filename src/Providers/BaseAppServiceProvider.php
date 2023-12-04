@@ -121,6 +121,16 @@ abstract class BaseAppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // $this->app->booted(function () {
+        //     // do something after boot
+        // });
+
+        /**
+         * @todo we can also separate boot and register config on boot ad register methods.
+         */
+        // $this->bootConfig($this->module(true), 'config');
+        // $this->registerConfig($this->module(true), 'config');
+
         // publish migrations
         $this->bootMigrations();
 
@@ -342,7 +352,7 @@ abstract class BaseAppServiceProvider extends ServiceProvider
     protected function bootViews(): void
     {
         // This will allow the usage of package components by their vendor namespace using the package-name:: syntax.
-        // ex: <x-core::calendar /> <x-core::alert /> <x-core::forms.input /> # for sub directories.
+        // ex: <x-core::calendar /> <x-core::alert /> <x-core::forms.input /> # for subdirectories.
         Blade::componentNamespace('\\Modules\\'.$this->module().'\\View\\Components', $this->module(true));
 
         $basePath = base_path('modules'.DIRECTORY_SEPARATOR.$this->module().DIRECTORY_SEPARATOR);

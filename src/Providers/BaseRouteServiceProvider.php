@@ -10,10 +10,17 @@ abstract class BaseRouteServiceProvider extends ServiceProvider
 {
     /**
      * The root namespace to assume when generating URLs to actions.
-     *
-     * @var string|null
+     * This is used by each module and should not overwrite the base service model
+     * @readonly this was renamed from $namespaced => $moduleNamespace
+     * to avoid overlying name conflicts.
      */
-    protected $namespace = '';
+    protected string $moduleNamespace = '';
+
+    abstract protected function getWebRoute(): string;
+
+    abstract protected function getApiRoute(): string;
+
+    abstract protected function getChannelsRoute(): string;
 
     /**
      * Define your route model bindings, pattern filters, etc.
@@ -22,12 +29,6 @@ abstract class BaseRouteServiceProvider extends ServiceProvider
     {
         parent::boot();
     }
-
-    abstract protected function getWebRoute(): string;
-
-    abstract protected function getApiRoute(): string;
-
-    abstract protected function getChannelsRoute(): string;
 
     /**
      * Define the routes for the application.
@@ -43,7 +44,7 @@ abstract class BaseRouteServiceProvider extends ServiceProvider
             $router->group([
                 'prefix' => 'api',
                 'middleware' => ['api'],
-                'namespace' => $this->namespace,
+                'namespace' => $this->moduleNamespace,
             ], function (Router $router) {
                 $this->loadApiRoutes($router);
             });
@@ -51,7 +52,7 @@ abstract class BaseRouteServiceProvider extends ServiceProvider
             // mapWebRoutes
             $router->group([
                 'middleware' => ['web'],
-                'namespace' => $this->namespace,
+                'namespace' => $this->moduleNamespace,
             ], function (Router $router) {
                 $this->loadWebRoutes($router);
             });

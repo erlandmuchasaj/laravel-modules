@@ -60,6 +60,10 @@
         {
             "type": "PayPal",
             "url": "https://paypal.me/emcms?country.x=AL&locale.x=en_US"
+        },
+        {
+            "type": "GitHub",
+            "url": "https://github.com/sponsors/erlandmuchasaj"
         }
     ],
     "config": {

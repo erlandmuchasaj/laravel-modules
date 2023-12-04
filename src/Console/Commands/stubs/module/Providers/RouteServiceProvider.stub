@@ -9,9 +9,8 @@ class RouteServiceProvider extends BaseRouteServiceProvider
 
     /**
      * The root namespace to assume when generating URLs to actions.
-     * @var string|null
      */
-    protected $namespace = 'Modules\\DummyModuleName\\Http\\Controllers';
+    protected string $moduleNamespace = 'Modules\\DummyModuleName\\Http\\Controllers';
 
     /**
      * @return string

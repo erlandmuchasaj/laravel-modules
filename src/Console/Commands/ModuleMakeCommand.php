@@ -213,7 +213,6 @@ class ModuleMakeCommand extends GeneratorCommand
         );
 
         passthru('composer update');
-        // passthru('composer update');
         // passthru('composer dump -o -n -q');
     }
 
@@ -345,9 +344,9 @@ class ModuleMakeCommand extends GeneratorCommand
             $phpArray['repositories'][] = [
                 'type' => 'path',
                 'url' => "./$folder/*",
-                // 'option' => [
-                //     'symlink' => true,
-                // ]
+                 'option' => [
+                     'symlink' => true,
+                 ]
             ];
         }
 

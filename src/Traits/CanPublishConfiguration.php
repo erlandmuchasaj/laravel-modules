@@ -20,13 +20,29 @@ trait CanPublishConfiguration
             return;
         }
 
-        $this->mergeConfigFrom($this->getModuleConfigFilePath($module, $fileName), Str::lower("$this->base.$module.$fileName"));
+        $this->bootConfig($module, $fileName);
 
+        $this->registerConfig($module, $fileName);
+    }
+
+    /**
+     * Publish the given configuration file name (without extension) and the given module
+     */
+    protected function bootConfig(string $module, string $fileName): void
+    {
         if (app()->runningInConsole()) {
             $this->publishes([
                 $this->getModuleConfigFilePath($module, $fileName) => config_path(Str::lower($this->base.DIRECTORY_SEPARATOR.$module.DIRECTORY_SEPARATOR.$fileName).'.php'),
             ], 'config');
         }
+    }
+
+    /**
+     * Merge config og module to laravel configuration files
+     */
+    protected function registerConfig(string $module, string $fileName): void
+    {
+        $this->mergeConfigFrom($this->getModuleConfigFilePath($module, $fileName), Str::lower("$this->base.$module.$fileName"));
     }
 
     /**

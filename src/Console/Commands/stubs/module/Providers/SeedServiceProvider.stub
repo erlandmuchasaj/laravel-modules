@@ -13,7 +13,6 @@ class SeedServiceProvider extends BaseSeedServiceProvider
      * as you want seeders and call them inside it.
      * $this->call(ModelTableSeeder::class);
      *
-     * @var string
      */
     protected string $namespace = 'Modules\\DummyModuleName\\Database\\Seeders\\DatabaseSeeder';
 

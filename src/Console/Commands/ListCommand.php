@@ -39,6 +39,7 @@ class ListCommand extends Command
      */
     public function handle(): int
     {
+
         $this->components->twoColumnDetail('<fg=gray>Index/Name</>');
         collect($this->getModules())->each(function ($item, $key) {
             $this->components->twoColumnDetail("[{$key}] / ".basename($item));
@@ -54,6 +55,10 @@ class ListCommand extends Command
      */
     public function getModules(): array
     {
+        if (! File::isDirectory(base_path('modules'))) {
+            return [];
+        }
+
         return File::directories(base_path('modules'));
     }
 }
