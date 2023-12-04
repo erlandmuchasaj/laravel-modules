@@ -41,7 +41,8 @@ abstract class BaseRouteServiceProvider extends ServiceProvider
 
         // mapApiRoutes
         $router->group([
-            'prefix' => 'api',
+            'prefix' => 'api', // api/route
+            'as' => 'api.',    // api.name
             'middleware' => ['api'],
             'namespace' => $this->moduleNamespace,
         ], function (Router $router) {
@@ -82,7 +83,6 @@ abstract class BaseRouteServiceProvider extends ServiceProvider
         if ($api && file_exists($api)) {
             $router->group([
                 'namespace' => 'Api',
-                'as' => 'api.',
             ], function () use ($api) {
                 $this->loadRoutesFrom($api);
             });
@@ -96,6 +96,11 @@ abstract class BaseRouteServiceProvider extends ServiceProvider
     {
         $channels = $this->getChannelsRoute();
         if ($channels && file_exists($channels)) {
+
+            if ($this->app instanceof CachesRoutes && $this->app->routesAreCached()) {
+                return;
+            }
+            
             require $channels;
         }
     }
