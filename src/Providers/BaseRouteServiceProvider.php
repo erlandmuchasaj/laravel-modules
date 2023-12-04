@@ -39,24 +39,22 @@ abstract class BaseRouteServiceProvider extends ServiceProvider
         // so that all the routes will be conveniently registered to the given
         // controller namespace. After that we will load the EMCMS routes file.
 
-        if (! ($this->app instanceof CachesRoutes && $this->app->routesAreCached())) {
-            // mapApiRoutes
-            $router->group([
-                'prefix' => 'api',
-                'middleware' => ['api'],
-                'namespace' => $this->moduleNamespace,
-            ], function (Router $router) {
-                $this->loadApiRoutes($router);
-            });
+        // mapApiRoutes
+        $router->group([
+            'prefix' => 'api',
+            'middleware' => ['api'],
+            'namespace' => $this->moduleNamespace,
+        ], function (Router $router) {
+            $this->loadApiRoutes($router);
+        });
 
-            // mapWebRoutes
-            $router->group([
-                'middleware' => ['web'],
-                'namespace' => $this->moduleNamespace,
-            ], function (Router $router) {
-                $this->loadWebRoutes($router);
-            });
-        }
+        // mapWebRoutes
+        $router->group([
+            'middleware' => ['web'],
+            'namespace' => $this->moduleNamespace,
+        ], function (Router $router) {
+            $this->loadWebRoutes($router);
+        });
 
         // Channels
         $this->loadChannelsRoutes();
@@ -70,7 +68,7 @@ abstract class BaseRouteServiceProvider extends ServiceProvider
         $frontend = $this->getWebRoute();
         if ($frontend && file_exists($frontend)) {
             $router->group([], function () use ($frontend) {
-                require $frontend;
+                $this->loadRoutesFrom($frontend);
             });
         }
     }
@@ -86,7 +84,7 @@ abstract class BaseRouteServiceProvider extends ServiceProvider
                 'namespace' => 'Api',
                 'as' => 'api.',
             ], function () use ($api) {
-                require $api;
+                $this->loadRoutesFrom($api);
             });
         }
     }
