@@ -77,10 +77,10 @@ abstract class BaseSeedServiceProvider extends ServiceProvider
 
         Artisan::call('db:seed', [
             '--class' => $this->namespace,
-            '--force' => true,
-            '--quiet' => true,
-            '--no-interaction' => true,
-            '--no-ansi' => true,
+            '--force' => '',
+            '--quiet' => '',
+            '--no-interaction' => '',
+            '--no-ansi' => '',
         ]);
 
         $runTime = round(microtime(true) - $startTime, 2);

@@ -122,7 +122,7 @@ abstract class BaseAppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         // $this->app->booted(function () {
-        //     // do something after boot
+        //     # do something after boot
         // });
 
         /**
@@ -300,6 +300,7 @@ abstract class BaseAppServiceProvider extends ServiceProvider
     protected function bootPolicies(): void
     {
         // Gate::policy(Model::class, ModelPolicy::class);
+        // Ex: Gate::policy(User::class, UserPolicy::class);
         foreach ($this->policies as $className => $policyName) {
             Gate::policy($className, $policyName);
         }
@@ -311,6 +312,7 @@ abstract class BaseAppServiceProvider extends ServiceProvider
     protected function bootObservers(): void
     {
         // Model::observe(ModelObserver::class);
+        // Ex: User::observe(UserObserver::class);
         foreach ($this->observers as $className => $observerName) {
             $classObj = app($className);
             if (! is_null($classObj)) {

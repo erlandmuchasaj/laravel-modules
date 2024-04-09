@@ -100,7 +100,7 @@ abstract class BaseRouteServiceProvider extends ServiceProvider
             if ($this->app instanceof CachesRoutes && $this->app->routesAreCached()) {
                 return;
             }
-            
+
             require $channels;
         }
     }

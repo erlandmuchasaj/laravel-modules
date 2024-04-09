@@ -42,7 +42,10 @@ trait CanPublishConfiguration
      */
     protected function registerConfig(string $module, string $fileName): void
     {
-        $this->mergeConfigFrom($this->getModuleConfigFilePath($module, $fileName), Str::lower("$this->base.$module.$fileName"));
+        $this->mergeConfigFrom(
+            $this->getModuleConfigFilePath($module, $fileName),
+            Str::lower("$this->base.$module.$fileName")
+        );
     }
 
     /**
