@@ -58,6 +58,6 @@ trait CanPublishConfiguration
 
     private function getModulePath(string $module): string
     {
-        return base_path('modules'.DIRECTORY_SEPARATOR.Str::studly($module));
+        return base_path($this->base.DIRECTORY_SEPARATOR.Str::studly($module));
     }
 }

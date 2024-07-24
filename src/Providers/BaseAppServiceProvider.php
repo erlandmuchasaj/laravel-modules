@@ -334,7 +334,7 @@ abstract class BaseAppServiceProvider extends ServiceProvider
      */
     protected function bootMigrations(): void
     {
-        $path = base_path('modules'.DIRECTORY_SEPARATOR.$this->module().DIRECTORY_SEPARATOR.'database'.DIRECTORY_SEPARATOR.'migrations');
+        $path = base_path($this->base.DIRECTORY_SEPARATOR.$this->module().DIRECTORY_SEPARATOR.'database'.DIRECTORY_SEPARATOR.'migrations');
 
         $this->loadMigrationsFrom($path);
 
@@ -357,7 +357,7 @@ abstract class BaseAppServiceProvider extends ServiceProvider
         // ex: <x-core::calendar /> <x-core::alert /> <x-core::forms.input /> # for subdirectories.
         Blade::componentNamespace('\\Modules\\'.$this->module().'\\View\\Components', $this->module(true));
 
-        $basePath = base_path('modules'.DIRECTORY_SEPARATOR.$this->module().DIRECTORY_SEPARATOR);
+        $basePath = base_path($this->base.DIRECTORY_SEPARATOR.$this->module().DIRECTORY_SEPARATOR);
 
         $viewPath = $basePath.'resources'.DIRECTORY_SEPARATOR.'views';
 
@@ -400,9 +400,9 @@ abstract class BaseAppServiceProvider extends ServiceProvider
     {
         // there is a change in structure for translations from v8 to v9.
         if (version_compare(app()->version(), '9.0.0') >= 0) {
-            $path = base_path('modules'.DIRECTORY_SEPARATOR.$this->module().DIRECTORY_SEPARATOR.'lang');
+            $path = base_path($this->base.DIRECTORY_SEPARATOR.$this->module().DIRECTORY_SEPARATOR.'lang');
         } else {
-            $path = base_path('modules'.DIRECTORY_SEPARATOR.$this->module().DIRECTORY_SEPARATOR.'resources'.DIRECTORY_SEPARATOR.'lang');
+            $path = base_path($this->base.DIRECTORY_SEPARATOR.$this->module().DIRECTORY_SEPARATOR.'resources'.DIRECTORY_SEPARATOR.'lang');
         }
 
         // to read language: module::file.key
