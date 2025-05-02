@@ -65,7 +65,7 @@ abstract class BaseAppServiceProvider extends ServiceProvider
      *
      * @example 'alias' => Model::class
      *
-     * @var array<string, class-string>
+     * @var array<non-empty-string, class-string>
      */
     protected array $aliases = [
     ];
@@ -99,7 +99,7 @@ abstract class BaseAppServiceProvider extends ServiceProvider
      * @example
      * 'subscription.is_customer' => hasBeenCustomer::class,
      *
-     * @var array<string, class-string>
+     * @var array<non-empty-string, class-string>
      */
     protected array $routeMiddleware = [
     ];
@@ -121,12 +121,20 @@ abstract class BaseAppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // $this->app->booted(function () {
-        //     # do something after boot
-        // });
 
+        // $this->app->booted(function () {
+        //      # do something after boot for example configure a command to run and register it in schedule runnner
+        //     /** @var Schedule */
+        //     $schedule = $this->app->make(\Illuminate\Console\Scheduling\Schedule::class);
+        //     $schedule->command('modules:check')
+        //         ->everyMinute()
+        //         ->withoutOverlapping()
+        //         ->sendOutputTo(storage_path('logs/laravel-modules.log'), true)
+        //         ->when(config('modules.scheduling.enabled'));
+        // });
+ 
         /**
-         * @todo we can also separate boot and register config on boot ad register methods.
+         * @todo we can also separate boot and register config on boot and register methods.
          */
         // $this->bootConfig($this->module(true), 'config');
         // $this->registerConfig($this->module(true), 'config');

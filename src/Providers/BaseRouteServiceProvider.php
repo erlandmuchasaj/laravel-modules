@@ -41,8 +41,8 @@ abstract class BaseRouteServiceProvider extends ServiceProvider
 
         // mapApiRoutes
         $router->group([
-            'prefix' => 'api', // api/route
-            'as' => 'api.',    // api.name
+            'prefix' => 'api', // api/{route}
+            'as' => 'api.',    // api.{name}
             'middleware' => ['api'],
             'namespace' => $this->moduleNamespace,
         ], function (Router $router) {
