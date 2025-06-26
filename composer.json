@@ -72,11 +72,11 @@
         "optimize-autoloader": true
     },
     "require": {
-        "php": "^8.0|^8.1|^8.2",
+        "php": "^8.0|^8.1|^8.2|^8.4",
         "ext-json": "*"
     },
     "require-dev": {
-        "laravel/framework": "^8.0|^9.0|^10.0|^11.0",
+        "laravel/framework": "^8.0|^9.0|^10.0|^11.0|^12.0",
         "phpunit/phpunit": "^10.0",
         "orchestra/testbench": "^8.0",
         "phpstan/phpstan": "^1.10"
