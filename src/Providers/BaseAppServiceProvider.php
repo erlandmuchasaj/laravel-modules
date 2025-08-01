@@ -121,7 +121,6 @@ abstract class BaseAppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-
         // $this->app->booted(function () {
         //      # do something after boot for example configure a command to run and register it in schedule runnner
         //     /** @var Schedule */
@@ -256,32 +255,33 @@ abstract class BaseAppServiceProvider extends ServiceProvider
     /**
      * bootMiddleware
      *
-     *
      * @throws BindingResolutionException
      */
     protected function bootMiddleware(): void
     {
-        // Register global middleware
-        $kernel = $this->app->make(Kernel::class);
-        foreach ($this->middleware as $middleware) {
-            $kernel->pushMiddleware($middleware);
-        }
-
-        $router = $this->app->make(Router::class);
-
-        // Register route middleware
-        foreach ($this->routeMiddleware as $name => $class) {
-            $router->aliasMiddleware($name, $class);
-            // $this->app['router']->aliasMiddleware($name, $class);
-        }
-
-        // Register group middleware
-        foreach ($this->middlewareGroups as $group => $middlewares) {
-            foreach ($middlewares as $middleware) {
-                $router->pushMiddlewareToGroup($group, $middleware);
-                // $this->app['router']->pushMiddlewareToGroup($group, $middleware);
+        $this->app->booted(function ($app) {
+            // Register global middleware
+            $kernel = $app->make(Kernel::class);
+            foreach ($this->middleware as $middleware) {
+                $kernel->pushMiddleware($middleware);
             }
-        }
+
+            $router = $app->make(Router::class);
+
+            // Register route middleware
+            foreach ($this->routeMiddleware as $name => $class) {
+                $router->aliasMiddleware($name, $class);
+                // $this->app['router']->aliasMiddleware($name, $class);
+            }
+
+            // Register group middleware
+            foreach ($this->middlewareGroups as $group => $middlewares) {
+                foreach ($middlewares as $middleware) {
+                    $router->pushMiddlewareToGroup($group, $middleware);
+                    // $this->app['router']->pushMiddlewareToGroup($group, $middleware);
+                }
+            }
+        });
     }
 
     /**
@@ -432,13 +432,13 @@ abstract class BaseAppServiceProvider extends ServiceProvider
      */
     protected function bootFactories(): void
     {
-        if ($this->app->isLocal()) {
+        // if ($this->app->isLocal()) {
             if ($this->app->runningInConsole()) {
                 $this->publishes([
                     __DIR__.'/../../database/seeders/DatabaseSeeder.php' => database_path('seeders/'.$this->module().'ModuleSeeder.php'),
                 ], 'seeders');
             }
-        }
+        // }
     }
 
     /**
@@ -453,4 +453,5 @@ abstract class BaseAppServiceProvider extends ServiceProvider
 
         return Str::studly($this->module);
     }
+    
 }
