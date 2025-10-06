@@ -2,7 +2,9 @@
 
 namespace ErlandMuchasaj\Modules\Providers;
 
+use ErlandMuchasaj\Modules\Support\SeedOrchestrator;
 use Illuminate\Console\Events\CommandFinished;
+use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Request;
@@ -18,15 +20,51 @@ abstract class BaseSeedServiceProvider extends ServiceProvider
     protected string $namespace = '';
 
     /**
+     * Seeder priority. Higher numbers run first.
+     * Default: 100
+     * System/Core seeders: 200+
+     * Standard modules: 100
+     * Optional modules: 50-
+     */
+    protected int $priority = 100;
+
+    /**
+     * Array of seeder class names that must run before this seeder.
+     */
+    protected array $dependencies = [];
+
+    /**
      * Bootstrap services.
+     *
+     * @throws BindingResolutionException
      */
     public function boot(): void
     {
-        if ($this->app->runningInConsole()) {
-            if ($this->isConsoleCommandContains(['db:seed', '--seed'], ['--class', 'help', '-h'])) {
-                $this->addSeedsAfterConsoleCommandFinished();
-            }
+        if (! $this->app->runningInConsole()) {
+            return;
         }
+
+        $this->registerSeeder();
+    }
+
+
+    /**
+     * Register the seeder with the orchestrator.
+     *
+     * @throws BindingResolutionException
+    */
+    protected function registerSeeder(): void
+    {
+        if (empty($this->namespace)) {
+            return;
+        }
+
+        $orchestrator = $this->app->make(SeedOrchestrator::class);
+        $orchestrator->register($this->namespace, $this->priority, $this->dependencies);
+
+        // if ($this->isConsoleCommandContains(['db:seed', '--seed'], ['--class', 'help', '-h'])) {
+        //     $this->addSeedsAfterConsoleCommandFinished();
+        // }
     }
 
     /**
@@ -35,6 +73,9 @@ abstract class BaseSeedServiceProvider extends ServiceProvider
      *
      * @param  string|string[]  $contain_options
      * @param  string|string[]  $exclude_options
+     *
+     * @deprecated
+     * @see SeedOrchestrator
      */
     protected function isConsoleCommandContains(array|string $contain_options, array|string $exclude_options = null): bool
     {
@@ -54,6 +95,9 @@ abstract class BaseSeedServiceProvider extends ServiceProvider
 
     /**
      * Add seeds from the $seed_path after the current command in console finished.
+     *
+     * @deprecated
+     * @see SeedOrchestrator
      */
     protected function addSeedsAfterConsoleCommandFinished(): void
     {
@@ -68,6 +112,8 @@ abstract class BaseSeedServiceProvider extends ServiceProvider
 
     /**
      * Register seeds.
+     * @deprecated
+     * @see SeedOrchestrator
      */
     protected function addSeedsFrom(): void
     {

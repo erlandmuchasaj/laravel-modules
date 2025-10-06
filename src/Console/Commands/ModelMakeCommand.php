@@ -3,7 +3,6 @@
 namespace ErlandMuchasaj\Modules\Console\Commands;
 
 use Illuminate\Contracts\Filesystem\FileNotFoundException;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Input\InputInterface;
@@ -62,12 +61,15 @@ class ModelMakeCommand extends BaseGeneratorCommand
         if ($this->option('all')) {
             $this->input->setOption('traits', true);
             $this->input->setOption('factory', true);
-            $this->input->setOption('seed', true);
+
             $this->input->setOption('migration', true);
+            $this->input->setOption('seed', true);
+
             $this->input->setOption('controller', true);
-            // $this->input->setOption('api', true);
-            $this->input->setOption('policy', true);
             $this->input->setOption('resource', true);
+            $this->input->setOption('api', true);
+
+            $this->input->setOption('policy', true);
         }
 
         if ($this->option('traits')) {

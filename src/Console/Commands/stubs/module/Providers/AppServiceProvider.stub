@@ -45,7 +45,7 @@ class AppServiceProvider extends BaseAppServiceProvider
     /**
      * register module aliases.
      *
-     * @var array<string, class-string>
+     * @var array<non-empty-string, class-string>
      */
     protected array $aliases = [
     ];
@@ -75,8 +75,8 @@ class AppServiceProvider extends BaseAppServiceProvider
      * These middleware may be assigned
      * to group or used individually
      *
-     * @var array<string, class-string>
      * @note On laravel 10+ route `routeMiddleware` was named to `middlewareAliases`
+     * @var array<non-empty-string, class-string>
      */
     protected array $routeMiddleware = [
     ];

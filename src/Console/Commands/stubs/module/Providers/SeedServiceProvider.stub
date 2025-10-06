@@ -9,11 +9,26 @@ class SeedServiceProvider extends BaseSeedServiceProvider
 
     /**
      * The root namespace to assume where to get the seeding data from.
-     * Inside the DatabaseSeeder folder you can create as many
-     * as you want seeders and call them inside it.
-     * $this->call(ModelTableSeeder::class);
+     * Inside the DatabaseSeeder folder you can create as many as you want seeders and call them inside it.
+     * The seeder class must extend the BaseSeeder class.
      *
+     * Example:
+     * $this->call(ModelTableSeeder::class);
      */
     protected string $namespace = 'Modules\\DummyModuleName\\Database\\Seeders\\DatabaseSeeder';
+
+    /**
+     * Seeder priority. Higher numbers run first.
+     * Default: 100
+     * System/Core seeders: 200+
+     * Standard modules: 100
+     * Optional modules: 50-
+     */
+    protected int $priority = 100;
+
+    /**
+     * Array of seeder class names that must run before this seeder.
+     */
+    protected array $dependencies = [];
 
 }

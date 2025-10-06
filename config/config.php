@@ -14,6 +14,14 @@ return [
 
     'namespace' => 'Modules',
 
+    /*
+    |--------------------------------------------------------------------------
+    | Module Base Folder
+    |--------------------------------------------------------------------------
+    |
+    | Base folder name for modules.
+    |
+    */
     'folder' => 'modules',
 
     /*
@@ -38,6 +46,50 @@ return [
 
         'modules' => base_path('modules'),
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Seed Orchestration
+    |--------------------------------------------------------------------------
+    |
+    | Configuration for module seed orchestration.
+    |
+    */
+    'seeds' => [
+        /*
+        | Enable automatic seed orchestration
+        */
+        'enabled' => true,
+
+        /*
+        | Run module seeds after main database seeder
+        */
+        'run_after_main' => true,
+
+        /*
+        | Throw exception on circular dependencies
+        */
+        'strict_dependencies' => true,
+
+        /*
+        | Default priority for seeders (if not specified)
+        */
+        'default_priority' => 100,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Module Auto Discovery
+    |--------------------------------------------------------------------------
+    |
+    | Enable automatic module discovery and registration.
+    |
+    */
+    'discovery' => [
+        'enabled' => true,
+        'cache' => true,
+    ],
+
 
     /*
     |--------------------------------------------------------------------------

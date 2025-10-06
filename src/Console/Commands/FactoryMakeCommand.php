@@ -122,9 +122,11 @@ class FactoryMakeCommand extends BaseGeneratorCommand
             return $modelName;
         }
 
-        $modelPath = base_path("modules/{$this->getModuleInput()}/src/Models/");
+        $modelPath = base_path('modules'.DIRECTORY_SEPARATOR.$this->getModuleInput().DIRECTORY_SEPARATOR.'src'
+            .DIRECTORY_SEPARATOR.'Models');
+
         if (is_dir($modelPath)) {
-            return $this->rootNamespace().'Models\Model';
+            return $this->rootNamespace().'Models'.'\\' . $name . '\\' . 'Model';
         }
 
         return $this->rootNamespace().'Model';
@@ -149,6 +151,33 @@ class FactoryMakeCommand extends BaseGeneratorCommand
     {
         return $rootNamespace.'\\Database\\Factories';
     }
+
+    /**
+     * Qualify the given model class base name.
+     *
+     * @param  string  $model
+     * @return string
+     */
+    protected function qualifyModel(string $model): string
+    {
+        $model = ltrim($model, '\\/');
+
+        $model = str_replace('/', '\\', $model);
+
+        $rootNamespace = $this->rootNamespace();
+
+        if (Str::startsWith($model, $rootNamespace)) {
+            return $model;
+        }
+
+        $modelPath = base_path('modules'.DIRECTORY_SEPARATOR.$this->getModuleInput().DIRECTORY_SEPARATOR.'src'
+            .DIRECTORY_SEPARATOR.'Models');
+
+        return is_dir($modelPath)
+            ? $rootNamespace.'Models\\'.$model.'\\'.$model
+            : $rootNamespace.$model;
+    }
+
 
     /**
      * Get the console command options.

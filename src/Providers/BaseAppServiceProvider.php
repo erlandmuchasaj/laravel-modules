@@ -141,14 +141,17 @@ abstract class BaseAppServiceProvider extends ServiceProvider
         // publish migrations
         $this->bootMigrations();
 
+        // boot Factories
+        $this->bootFactories();
+
         // boot translations
         $this->bootTranslations();
 
-        // boot Blade directive and components
-        $this->bootBladeDirective();
+        // boot Views
+        $this->bootViews();
 
-        // boot Validators
-        $this->bootValidators();
+
+
 
         // boot middleware
         $this->bootMiddleware();
@@ -156,17 +159,17 @@ abstract class BaseAppServiceProvider extends ServiceProvider
         // boot observers
         $this->bootObservers();
 
-        // boot Services
-        $this->bootServices();
-
-        // boot Factories
-        $this->bootFactories();
-
         // boot Policies
         $this->bootPolicies();
 
-        // boot Views
-        $this->bootViews();
+        // boot Validators
+        $this->bootValidators();
+
+        // boot Blade directive and components
+        $this->bootBladeDirective();
+
+        // boot Services
+        $this->bootServices();
     }
 
     /**
@@ -186,11 +189,11 @@ abstract class BaseAppServiceProvider extends ServiceProvider
         // Register Aliases
         $this->registerAliases();
 
-        // Register Commands
-        $this->registerCommands();
-
         // Register providers
         $this->registerProviders();
+
+        // Register Commands
+        $this->registerCommands();
     }
 
     /**
@@ -226,6 +229,10 @@ abstract class BaseAppServiceProvider extends ServiceProvider
      */
     protected function registerAliases(): void
     {
+        if (empty($this->aliases)) {
+            return;
+        }
+
         $loader = AliasLoader::getInstance();
         foreach ($this->aliases as $aliasName => $aliasClass) {
             $loader->alias($aliasName, $aliasClass);
@@ -237,9 +244,11 @@ abstract class BaseAppServiceProvider extends ServiceProvider
      */
     protected function registerCommands(): void
     {
-        if ($this->app->runningInConsole()) {
-            $this->commands($this->commands);
+        if (!$this->app->runningInConsole() || empty($this->commands)) {
+            return;
         }
+
+        $this->commands($this->commands);
     }
 
     /**
@@ -262,11 +271,12 @@ abstract class BaseAppServiceProvider extends ServiceProvider
         $this->app->booted(function ($app) {
             // Register global middleware
             $kernel = $app->make(Kernel::class);
+            $router = $app->make(Router::class);
+
+            // Register global middleware
             foreach ($this->middleware as $middleware) {
                 $kernel->pushMiddleware($middleware);
             }
-
-            $router = $app->make(Router::class);
 
             // Register route middleware
             foreach ($this->routeMiddleware as $name => $class) {
@@ -307,6 +317,10 @@ abstract class BaseAppServiceProvider extends ServiceProvider
      */
     protected function bootPolicies(): void
     {
+        if (empty($this->policies)) {
+            return;
+        }
+
         // Gate::policy(Model::class, ModelPolicy::class);
         // Ex: Gate::policy(User::class, UserPolicy::class);
         foreach ($this->policies as $className => $policyName) {
@@ -319,6 +333,10 @@ abstract class BaseAppServiceProvider extends ServiceProvider
      */
     protected function bootObservers(): void
     {
+        if (empty($this->observers)) {
+            return;
+        }
+
         // Model::observe(ModelObserver::class);
         // Ex: User::observe(UserObserver::class);
         foreach ($this->observers as $className => $observerName) {
@@ -343,6 +361,10 @@ abstract class BaseAppServiceProvider extends ServiceProvider
     protected function bootMigrations(): void
     {
         $path = base_path($this->base.DIRECTORY_SEPARATOR.$this->module().DIRECTORY_SEPARATOR.'database'.DIRECTORY_SEPARATOR.'migrations');
+
+        if (!is_dir($path)) {
+            return;
+        }
 
         $this->loadMigrationsFrom($path);
 
@@ -413,6 +435,10 @@ abstract class BaseAppServiceProvider extends ServiceProvider
             $path = base_path($this->base.DIRECTORY_SEPARATOR.$this->module().DIRECTORY_SEPARATOR.'resources'.DIRECTORY_SEPARATOR.'lang');
         }
 
+        if (!is_dir($path)) {
+            return;
+        }
+
         // to read language: module::file.key
         // ex: __('core::messages.welcome');
         $this->loadTranslationsFrom($path, $this->module(true));
@@ -432,13 +458,11 @@ abstract class BaseAppServiceProvider extends ServiceProvider
      */
     protected function bootFactories(): void
     {
-        // if ($this->app->isLocal()) {
-            if ($this->app->runningInConsole()) {
-                $this->publishes([
-                    __DIR__.'/../../database/seeders/DatabaseSeeder.php' => database_path('seeders/'.$this->module().'ModuleSeeder.php'),
-                ], 'seeders');
-            }
-        // }
+        if ($this->app->runningInConsole()) {
+            $this->publishes([
+                __DIR__.'/../../database/seeders/DatabaseSeeder.php' => database_path('seeders/'.$this->module().'ModuleSeeder.php'),
+            ], 'seeders');
+        }
     }
 
     /**
@@ -448,10 +472,20 @@ abstract class BaseAppServiceProvider extends ServiceProvider
     protected function module(bool $snake = false): string
     {
         if ($snake === true) {
-            return Str::snake($this->module);
+            return Str::snake($this->module); # module_name
         }
 
-        return Str::studly($this->module);
+        return Str::studly($this->module); # ModuleName
+    }
+
+    /**
+     * Get module base path.
+     */
+    protected function modulePath(string $path = ''): string
+    {
+        $basePath = base_path($this->base . '/' . $this->module());
+        
+        return $path ? $basePath . '/' . $path : $basePath;
     }
     
 }

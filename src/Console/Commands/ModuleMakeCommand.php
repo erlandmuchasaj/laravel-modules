@@ -91,7 +91,7 @@ class ModuleMakeCommand extends GeneratorCommand
 
         // Next, We will check to see if the Module folder already exists. If it does, we don't want
         // to create the Module and overwrite the user's code. So, we will bail out so the
-        // code is untouched. Otherwise, we will continue generating this Module' files.
+        // code is untouched. Otherwise, we will continue generating this Module's files.
         if ($this->files->exists($folder.DIRECTORY_SEPARATOR.$moduleName)) {
             $this->components->error(
                 sprintf('Module [%s] already exists.', $moduleName)
@@ -103,6 +103,7 @@ class ModuleMakeCommand extends GeneratorCommand
         /**
          * Create Module Folder Structures
          */
+        $this->info("Creating module: {$moduleName}");
         $this->makeDirectory("$folder/$moduleName");
         $this->makeDirectory("$folder/$moduleName/bootstrap", true);
         $this->makeDirectory("$folder/$moduleName/config", true);
@@ -175,7 +176,8 @@ class ModuleMakeCommand extends GeneratorCommand
             $this->makeDirectory("$folder/$moduleName/src/Validators");
         }
 
-        /**$folder
+        /**
+         * $folder
          * Add .gitkeep files in folders in order to keep them in repositories
          *
          * @note if we do not add .gitkeep the folder won't be pushed on repository.

@@ -5,16 +5,39 @@ namespace ErlandMuchasaj\Modules\Providers;
 use Illuminate\Contracts\Foundation\CachesRoutes;
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
 use Illuminate\Routing\Router;
+use Illuminate\Support\Facades\Route;
 
 abstract class BaseRouteServiceProvider extends ServiceProvider
 {
     /**
+     * The controller namespace for the module.
+     * 
      * The root namespace to assume when generating URLs to actions.
      * This is used by each module and should not overwrite the base service model
      * @readonly this was renamed from $namespaced => $moduleNamespace
      * to avoid overlying name conflicts.
      */
     protected string $moduleNamespace = '';
+
+    /**
+     * API route prefix.
+     */
+    protected string $apiPrefix = 'api';
+
+    /**
+     * API route name prefix.
+     */
+    protected string $apiNamePrefix = 'api';
+
+    /**
+     * Web route middleware group.
+     */
+    protected array $webMiddleware = ['web'];
+
+    /**
+     * API route middleware group.
+     */
+    protected array $apiMiddleware = ['api'];
 
     abstract protected function getWebRoute(): string;
 
@@ -39,54 +62,53 @@ abstract class BaseRouteServiceProvider extends ServiceProvider
         // so that all the routes will be conveniently registered to the given
         // controller namespace. After that we will load the EMCMS routes file.
 
+        // Skip if routes are cached
+        if ($this->routesAreCached()) {
+            return;
+        }
+
         // mapApiRoutes
-        $router->group([
-            'prefix' => 'api', // api/{route}
-            'as' => 'api.',    // api.{name}
-            'middleware' => ['api'],
-            'namespace' => $this->moduleNamespace,
-        ], function (Router $router) {
-            $this->loadApiRoutes($router);
-        });
+        $this->mapApiRoutes();
 
         // mapWebRoutes
-        $router->group([
-            'middleware' => ['web'],
-            'namespace' => $this->moduleNamespace,
-        ], function (Router $router) {
-            $this->loadWebRoutes($router);
-        });
+        $this->mapWebRoutes();
 
         // Channels
         $this->loadChannelsRoutes();
     }
 
-    /**
-     * Load all web routes.
+   /**
+     * Define the "api" routes for the module.
      */
-    private function loadWebRoutes(Router $router): void
+    protected function mapApiRoutes(): void
     {
-        $frontend = $this->getWebRoute();
-        if ($frontend && file_exists($frontend)) {
-            $router->group([], function () use ($frontend) {
-                $this->loadRoutesFrom($frontend);
-            });
+        $route = $this->getApiRoute();
+
+        if (!$this->routeFileExists($route)) {
+            return;
         }
+
+        Route::prefix($this->apiPrefix)
+            ->as("{$this->apiNamePrefix}.")
+            ->middleware($this->apiMiddleware)
+            ->namespace($this->moduleNamespace . '\\Api')
+            ->group($route);
     }
 
     /**
-     * Load /Api routes
+     * Define the "web" routes for the module.
      */
-    private function loadApiRoutes(Router $router): void
+    protected function mapWebRoutes(): void
     {
-        $api = $this->getApiRoute();
-        if ($api && file_exists($api)) {
-            $router->group([
-                'namespace' => 'Api',
-            ], function () use ($api) {
-                $this->loadRoutesFrom($api);
-            });
+        $route = $this->getWebRoute();
+
+        if (!$this->routeFileExists($route)) {
+            return;
         }
+
+        Route::middleware($this->webMiddleware)
+            ->namespace($this->moduleNamespace)
+            ->group($route);
     }
 
     /**
@@ -94,14 +116,37 @@ abstract class BaseRouteServiceProvider extends ServiceProvider
      */
     private function loadChannelsRoutes(): void
     {
-        $channels = $this->getChannelsRoute();
-        if ($channels && file_exists($channels)) {
 
-            if ($this->app instanceof CachesRoutes && $this->app->routesAreCached()) {
-                return;
-            }
+        $route = $this->getChannelsRoute();
 
-            require $channels;
+        if (!$this->routeFileExists($route)) {
+            return;
         }
+
+        require $route;
     }
+
+    /**
+     * Check if route file exists with caching.
+     */
+    protected function routeFileExists(string $path): bool
+    {
+        // Cache the file existence check to avoid filesystem hits
+        static $cache = [];
+
+        if (!isset($cache[$path])) {
+            $cache[$path] = $path && file_exists($path);
+        }
+
+        return $cache[$path];
+    }
+
+        /**
+     * Check if routes are cached.
+     */
+    protected function routesAreCached(): bool
+    {
+        return $this->app instanceof CachesRoutes && $this->app->routesAreCached();
+    }
+
 }

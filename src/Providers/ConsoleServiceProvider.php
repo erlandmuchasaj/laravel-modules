@@ -8,8 +8,6 @@ use Illuminate\Support\ServiceProvider;
 
 class ConsoleServiceProvider extends ServiceProvider
 {
-    protected bool $defer = true;
-
     /**
      * The available commands
      *
@@ -18,7 +16,6 @@ class ConsoleServiceProvider extends ServiceProvider
     protected array $commands = [
         Commands\AppVersion::class,
         Commands\AppInstall::class,
-        Commands\ListCommand::class,
         Commands\CastMakeCommand::class,
         Commands\ScopeMakeCommand::class,
         Commands\ChannelMakeCommand::class,
@@ -45,8 +42,22 @@ class ConsoleServiceProvider extends ServiceProvider
         Commands\MailMakeCommand::class,
         Commands\SeederMakeCommand::class,
         Commands\FactoryMakeCommand::class,
+        Commands\ModuleListCommand::class,
         Commands\ModuleMakeCommand::class,
+        Commands\ModuleSeedCommand::class,
+        Commands\ModuleSeedCheckCommand::class,
+        Commands\ModuleSeedListCommand::class,
+        Commands\ModuleSeedClearCommand::class,
+        Commands\ModuleAnalyzeCommand::class,
+        Commands\ModuleCacheCommand::class,
+        Commands\ModuleCacheClearCommand::class,
+        Commands\ModuleCacheStatsCommand::class,
     ];
+
+    /**
+     * Indicates if loading of the provider is deferred.
+     */
+    protected bool $defer = true;
 
     /**
      * Register the commands.
