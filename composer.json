@@ -6,7 +6,6 @@
     "prefer-stable": true,
     "homepage": "https://github.com/erlandmuchasaj/laravel-modules",
     "license": "MIT",
-    "version": "1.2.2",
     "keywords": [
         "modules",
         "module",
