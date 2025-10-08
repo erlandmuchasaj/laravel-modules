@@ -238,16 +238,17 @@ abstract class BaseGeneratorCommand extends GeneratorCommand
 
     /**
      * Check if the module folder exists.
+     *
+     * @see moduleExists()
      */
     private function moduleAlreadyExists(): bool
     {
-        $moduleName = $this->getModuleInput();
-
         // Next, We will check to see if the Module folder already exists.
         // If it doesn't, we don't want to create other related data.
         // So, we will bail out and the code is untouched.
+        $moduleName = $this->getModuleInput();
 
-        return $this->files->exists('modules'.DIRECTORY_SEPARATOR.$moduleName);
+        return $this->moduleExists($moduleName);
     }
 
     /**
