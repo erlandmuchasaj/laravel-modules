@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 namespace ErlandMuchasaj\Modules\Providers;
 
@@ -12,17 +13,23 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 
+/**
+ * Base service provider for modules.
+ * Extend this to create module-specific providers.
+ */
 abstract class BaseAppServiceProvider extends ServiceProvider
 {
     use CanPublishConfiguration;
 
     /**
      * The Module Name
+     * @var string
      */
     protected string $module;
 
     /**
      * Indicates if loading of the provider is deferred.
+     * @var bool
      */
     protected bool $defer = false;
 
@@ -37,8 +44,7 @@ abstract class BaseAppServiceProvider extends ServiceProvider
      *
      * @var array<int, class-string>
      */
-    protected array $providers = [
-    ];
+    protected array $providers = [];
 
     /**
      * The policy mappings for the application.
@@ -47,8 +53,7 @@ abstract class BaseAppServiceProvider extends ServiceProvider
      *
      * @var array<class-string, class-string>
      */
-    protected array $policies = [
-    ];
+    protected array $policies = [];
 
     /**
      * Boot module observers.
@@ -94,7 +99,7 @@ abstract class BaseAppServiceProvider extends ServiceProvider
 
     /**
      * The application's route middleware.
-     * These middleware may be assigned to group or used individually.
+     * This middleware may be assigned to group or used individually.
      *
      * @example
      * 'subscription.is_customer' => hasBeenCustomer::class,
@@ -377,7 +382,7 @@ abstract class BaseAppServiceProvider extends ServiceProvider
 
     /**
      * Register views & Publish views.
-     * This function register views, components and assets.
+     * This function registers views, components and assets.
      *
      * @throws BindingResolutionException
      */
@@ -423,7 +428,7 @@ abstract class BaseAppServiceProvider extends ServiceProvider
      * Register & Publish translations.
      *
      * Package translations are referenced using the module::file.line syntax convention
-     * So, you may load the user module's welcome line from the messages file like so:
+     * So, you may load the user module's welcome line from the message file like so:
      * echo trans('user::messages.welcome');
      */
     protected function bootTranslations(): void
@@ -466,7 +471,7 @@ abstract class BaseAppServiceProvider extends ServiceProvider
     }
 
     /**
-     * Get module case according to different usage cases.
+     * Get a module case according to different usage cases.
      * Studly or snake case.
      */
     protected function module(bool $snake = false): string
@@ -479,7 +484,7 @@ abstract class BaseAppServiceProvider extends ServiceProvider
     }
 
     /**
-     * Get module base path.
+     * Get a module base path.
      */
     protected function modulePath(string $path = ''): string
     {

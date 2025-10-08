@@ -2,17 +2,16 @@
 
 namespace ErlandMuchasaj\Modules\Console\Commands;
 
-use Illuminate\Console\GeneratorCommand;
+use Throwable;
 use Illuminate\Contracts\Filesystem\FileNotFoundException;
-use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
-use InvalidArgumentException;
+use RuntimeException;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputOption;
 
-#[AsCommand(name: 'module:make')]
-class ModuleMakeCommand extends GeneratorCommand
+#[AsCommand(name: 'module:make', description: 'Create blueprint for a new module')]
+class ModuleMakeCommand extends BaseGeneratorCommand
 {
     /**
      * The console command name.
@@ -48,9 +47,6 @@ class ModuleMakeCommand extends GeneratorCommand
 
     /**
      * Execute the console command.
-     *
-     *
-     * @throws FileNotFoundException
      */
     public function handle(): ?bool
     {
@@ -61,169 +57,53 @@ class ModuleMakeCommand extends GeneratorCommand
 
     /**
      * Generate the entire structure of a module
-     *
-     *
-     * @throws FileNotFoundException
      */
-    public function generateModuleStructure(): void
+    public function generateModuleStructure(): int
     {
         $moduleName = $this->getModuleInput();
 
-        // First we need to ensure that the given name is not a reserved word within the PHP
-        // language and that the class name will actually be valid. If it is not valid we
+        // First, we need to ensure that the given name is not a reserved word within the PHP
+        // language and that the class name will actually be valid. If it is not valid, we
         // can error now and prevent from polluting the filesystem using invalid files.
-        if ($this->isReservedName($moduleName)) {
-            $this->error('The name "'.$moduleName.'" is reserved by PHP.');
-
-            return;
+        if (!$this->validateModuleName($moduleName)) {
+            return self::FAILURE;
         }
-
-        // Next we check that the name does not contain any non-supported values.
-        if (preg_match('([^A-Za-z0-9_/\\\\])', $moduleName)) {
-            throw new InvalidArgumentException('Module name contains invalid characters.');
-        }
-
-        $config = $this->laravel['config'];
-
-        $folder = $config->get('modules.folder', 'modules') ?: 'modules';
-
-        $namespace = $config->get('modules.namespace', 'Modules') ?: 'Modules';
 
         // Next, We will check to see if the Module folder already exists. If it does, we don't want
         // to create the Module and overwrite the user's code. So, we will bail out so the
         // code is untouched. Otherwise, we will continue generating this Module's files.
-        if ($this->files->exists($folder.DIRECTORY_SEPARATOR.$moduleName)) {
-            $this->components->error(
-                sprintf('Module [%s] already exists.', $moduleName)
-            );
-
-            return;
+        if ($this->moduleExists($moduleName)) {
+            $this->components->error(sprintf('Module [%s] already exists.', $moduleName));
+            return self::FAILURE;
         }
 
-        /**
-         * Create Module Folder Structures
-         */
-        $this->info("Creating module: {$moduleName}");
-        $this->makeDirectory("$folder/$moduleName");
-        $this->makeDirectory("$folder/$moduleName/bootstrap", true);
-        $this->makeDirectory("$folder/$moduleName/config", true);
-        $this->makeDirectory("$folder/$moduleName/database/factories", true);
-        $this->makeDirectory("$folder/$moduleName/database/migrations", true);
-        $this->makeDirectory("$folder/$moduleName/database/seeders", true);
+        $this->info("Creating module: $moduleName");
 
-        // Add a default seeder on all modules
-        // this will be used as an entry
-        // point for seeding.
-        $seederStub = $this->files->get(__DIR__.'/stubs/seeder.stub');
-        $this->files->put(
-            "$folder/$moduleName/database/seeders/DatabaseSeeder.php",
-            $this->replaceNamespace($seederStub, $namespace.'\\'.$moduleName.'\\Database\\Seeders\\DatabaseSeeder')
-                ->replaceModuleName($seederStub, $moduleName)
-                ->replaceClass($seederStub, 'DatabaseSeeder')
-        );
+        try {
+            // Create directory structure
+            $this->createModuleStructure($moduleName);
 
-        // there is a change in structure for translations from v8 to v9.
-        if (version_compare(app()->version(), '9.0.0') >= 0) {
-            $this->makeDirectory("$folder/$moduleName/lang/en");
-            $this->files->put("$folder/$moduleName/lang/en.json", '{}');
-            $this->files->put("$folder/$moduleName/lang/en/messages.php", "<?php \n\n/*\n * You can place your custom module messages in here.\n */\n \nreturn [\n\n];\n");
-        } else {
-            $this->makeDirectory("$folder/$moduleName/resources/lang/en");
-            $this->files->put("$folder/$moduleName/resources/lang/en/messages.php", "<?php \n\n/*\n * You can place your custom module messages in here.\n */\n \nreturn [\n\n];\n");
+            // Create all module files
+            $this->createModuleFiles($moduleName);
+
+            // Create composer.json for the module
+            $this->writeComposerFile($moduleName);
+
+            // Register module in main composer.json
+            $this->requireModule($moduleName);
+
+        } catch (Throwable $e) {
+            $this->components->error("Failed to create module $moduleName: " . $e->getMessage());
+
+            // Optionally clean up partially created module
+            if ($this->option('cleanup-on-error')) {
+                $this->cleanupModule($moduleName);
+            }
+            return self::FAILURE;
         }
 
-        $this->makeDirectory("$folder/$moduleName/resources/views/components", true);
-        $this->makeDirectory("$folder/$moduleName/resources/views/errors", true);
-        $this->makeDirectory("$folder/$moduleName/resources/views/pages", true);
-        $this->makeDirectory("$folder/$moduleName/resources/views/partials", true);
-        $this->makeDirectory("$folder/$moduleName/resources/views/layouts/includes", true);
-        $this->makeDirectory("$folder/$moduleName/resources/assets/css", true);
-        $this->makeDirectory("$folder/$moduleName/resources/assets/js", true);
-        $this->makeDirectory("$folder/$moduleName/tests/Feature", true);
-        $this->makeDirectory("$folder/$moduleName/tests/Unit", true);
-        $this->makeDirectory("$folder/$moduleName/routes");
-
-        $this->makeDirectory("$folder/$moduleName/src");
-        $this->makeDirectory("$folder/$moduleName/src/Http");
-        $this->makeDirectory("$folder/$moduleName/src/Console");
-        $this->makeDirectory("$folder/$moduleName/src/Providers");
-        $this->makeDirectory("$folder/$moduleName/src/Models", true);
-        $this->makeDirectory("$folder/$moduleName/src/Console/Commands", true);
-        $this->makeDirectory("$folder/$moduleName/src/Http/Controllers", true);
-        $this->makeDirectory("$folder/$moduleName/src/Http/Middleware", true);
-        $this->makeDirectory("$folder/$moduleName/src/Http/Requests", true);
-
-        if ($this->option('all')) {
-            $this->makeDirectory("$folder/$moduleName/src/Enums");
-            $this->makeDirectory("$folder/$moduleName/src/Broadcasting");
-            $this->makeDirectory("$folder/$moduleName/src/Exceptions");
-            $this->makeDirectory("$folder/$moduleName/src/Events");
-            $this->makeDirectory("$folder/$moduleName/src/Http/Controllers/Api");
-            $this->makeDirectory("$folder/$moduleName/src/Http/Middleware/Api");
-            $this->makeDirectory("$folder/$moduleName/src/Http/Resources");
-            $this->makeDirectory("$folder/$moduleName/src/Http/ViewComposers");
-            $this->makeDirectory("$folder/$moduleName/src/Jobs");
-            $this->makeDirectory("$folder/$moduleName/src/Listeners");
-            $this->makeDirectory("$folder/$moduleName/src/Mail");
-            $this->makeDirectory("$folder/$moduleName/src/Notifications");
-            $this->makeDirectory("$folder/$moduleName/src/Observers");
-            $this->makeDirectory("$folder/$moduleName/src/Policies");
-            $this->makeDirectory("$folder/$moduleName/src/Repositories");
-            $this->makeDirectory("$folder/$moduleName/src/Rules");
-            $this->makeDirectory("$folder/$moduleName/src/Services");
-            $this->makeDirectory("$folder/$moduleName/src/Traits");
-            $this->makeDirectory("$folder/$moduleName/src/Utils");
-            $this->makeDirectory("$folder/$moduleName/src/Validators");
-        }
-
-        /**
-         * $folder
-         * Add .gitkeep files in folders in order to keep them in repositories
-         *
-         * @note if we do not add .gitkeep the folder won't be pushed on repository.
-         */
-        $this->files->put("$folder/$moduleName/config/config.php", "<?php \n\n/*\n * You can place your custom module configuration in here.\n */\n \nreturn [\n\n];\n");
-
-        $stubWebRoute = $this->files->get($this->getStub().'/routes/web.stub');
-        $stubApiRoute = $this->files->get($this->getStub().'/routes/api.stub');
-        $stubBroadcastChannel = $this->files->get($this->getStub().'/routes/channels.stub');
-
-        $this->files->put("$folder/$moduleName/routes/web.php", $this->writeFile($stubWebRoute, $moduleName));
-        $this->files->put("$folder/$moduleName/routes/api.php", $this->writeFile($stubApiRoute, $moduleName));
-        $this->files->put("$folder/$moduleName/routes/channels.php", $this->writeFile($stubBroadcastChannel, $moduleName));
-        $this->files->put("$folder/$moduleName/src/helpers.php", "<?php \n\n/*\n * You can place your custom helper functions.\n */");
-
-        $this->files->put("$folder/$moduleName/CHANGELOG.md", $this->files->get($this->getStub().'/CHANGELOG.stub'));
-        $this->files->put("$folder/$moduleName/CODE_OF_CONDUCT.md", $this->files->get($this->getStub().'/CODE_OF_CONDUCT.stub'));
-        $this->files->put("$folder/$moduleName/README.md", $this->files->get($this->getStub().'/README.stub'));
-        $this->files->put("$folder/$moduleName/CONTRIBUTING.md", $this->files->get($this->getStub().'/CONTRIBUTING.stub'));
-        $this->files->put("$folder/$moduleName/LICENSE.md", $this->files->get($this->getStub().'/LICENSE.stub'));
-        $this->files->put("$folder/$moduleName/SECURITY.md", $this->files->get($this->getStub().'/SECURITY.stub'));
-
-        $this->buildProviderClass("$namespace\\$moduleName\\Providers\\AppServiceProvider", $this->getStub().'/Providers/AppServiceProvider.stub');
-        // $this->buildProviderClass("$namespace\\{$moduleName}\\Providers\\BroadcastServiceProvider", $this->getStub().'/Providers/BroadcastServiceProvider.stub');
-        $this->buildProviderClass("$namespace\\$moduleName\\Providers\\EventServiceProvider", $this->getStub().'/Providers/EventServiceProvider.stub');
-        $this->buildProviderClass("$namespace\\$moduleName\\Providers\\RouteServiceProvider", $this->getStub().'/Providers/RouteServiceProvider.stub');
-        $this->buildProviderClass("$namespace\\$moduleName\\Providers\\SeedServiceProvider", $this->getStub().'/Providers/SeedServiceProvider.stub');
-
-        $this->writeComposerFile($moduleName);
-
-        $this->requireModule($moduleName);
-
-        $this->components->info(
-            sprintf('Module [%s] created successfully.', $moduleName)
-        );
-
-        passthru('composer update');
-        // passthru('composer dump -o -n -q');
-    }
-
-    /**
-     * Get the desired class name from the input.
-     */
-    protected function getModuleInput(): string
-    {
-        return Str::of(strval($this->argument('module')))->trim()->studly();
+        $this->components->info(sprintf('Module [%s] created successfully.', $moduleName));
+        return self::SUCCESS;
     }
 
     /**
@@ -237,7 +117,7 @@ class ModuleMakeCommand extends GeneratorCommand
             $this->files->makeDirectory($path, 0777, true, true);
         }
 
-        // if we want to keep teh  file in repo
+        // if we want to keep the file in repo
         if ($gitKeep) {
             $this->files->put("$path/.gitkeep", '');
         }
@@ -250,7 +130,7 @@ class ModuleMakeCommand extends GeneratorCommand
      */
     protected function getStub(): string
     {
-        return __DIR__.'/stubs/module';
+        return  __DIR__ . '/stubs/module';
     }
 
     /**
@@ -261,9 +141,7 @@ class ModuleMakeCommand extends GeneratorCommand
      */
     protected function buildProviderClass(string $name, string $stubPath): int|bool
     {
-        $config = $this->laravel['config'];
-
-        $folder = $config->get('modules.folder', 'modules') ?: 'modules';
+        $folder = $this->getModuleFolder();
 
         $stub = $this->files->get($stubPath);
 
@@ -284,19 +162,15 @@ class ModuleMakeCommand extends GeneratorCommand
      */
     public function writeComposerFile(string $moduleName): void
     {
-        $config = $this->laravel['config'];
-
-        $folder = $config->get('modules.folder', 'modules') ?: 'modules';
+        $snakeModuleName = Str::kebab($moduleName);
 
         $content = $this->files->get($this->getStub().'/composer.stub');
-
-        $snakeModuleName = Str::kebab($moduleName);
 
         $content = str_replace(['SnakeModuleName', '{{ class }}', '{{class}}'], $snakeModuleName, $content);
 
         $content = str_replace(['ModuleName', '{{ class }}', '{{class}}'], $moduleName, $content);
 
-        $this->files->put("$folder/$moduleName/composer.json", $content);
+        $this->files->put($this->getModulePath($moduleName, 'composer.json'), $content);
     }
 
     public function writeFile(string $stub, string $moduleName): string
@@ -317,43 +191,126 @@ class ModuleMakeCommand extends GeneratorCommand
     }
 
     /**
-     * Put the new module on the main json file of Laravel
+     * Put the new module in the main JSON file of Laravel
      *
-     *
-     * @throws FileNotFoundException
      */
     public function requireModule(string $moduleName): void
     {
-        $config = $this->laravel['config'];
-
-        $folder = $config->get('modules.folder', 'modules') ?: 'modules';
-
-        $snakeModuleName = Str::kebab($moduleName);
-
-        $content = $this->files->get('composer.json');
-
-        $phpArray = json_decode($content, true);
-
-        $phpArray['require'][$folder.'/'.$snakeModuleName] = '^1.0';
-
-        // auto wire the path repository for modules loading.
-        // this is done only once.
-        $exists = collect(Arr::wrap($phpArray['repositories'] ?? []))->contains(function ($value) use ($folder) {
-            return $value['type'] === 'path' && Str::contains($value['url'], "./$folder/*");
-        });
-
-        if (! $exists) {
-            $phpArray['repositories'][] = [
-                'type' => 'path',
-                'url' => "./$folder/*",
-                 'option' => [
-                     'symlink' => true,
-                 ]
-            ];
+        if ($this->option('no-register')) {
+            $this->components->info('Module created but not registered. Run composer update manually.');
+            return;
         }
 
-        if ($file = json_encode($phpArray, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)) {
-            $this->files->put('composer.json', $file);
+        try {
+            $this->updateComposerJson($moduleName);
+
+            $packageName = $this->getModulePackageName($moduleName);
+
+            // Instead of full composer update, use composer dump-autoload
+            $this->components->info("Installing module: $packageName");
+
+            // $command = sprintf(
+            //     'composer require  "%s:*" --no-interaction %s %s',
+            //     $packageName,
+            //     $this->option('optimize') ? '-o' : '',
+            //     $this->option('quiet') ? '-q' : ''
+            // );
+
+            $command = sprintf(
+                'composer update "%s" --no-interaction %s %s',
+                $packageName,
+                $this->option('optimize') ? '-o' : '',
+                $this->option('quiet') ? '-q' : ''
+            );
+
+            passthru($command, $exitCode);
+
+            if ($exitCode === 0) {
+                $this->components->info('Module registered successfully!');
+            } else {
+                throw new RuntimeException('Composer update failed');
+            }
+        } catch (Throwable $e) {
+            $this->components->error('Failed to register module: '.$e->getMessage());
+            $this->components->warn('You may need to run "composer update" manually.');
+        }
+    }
+
+    /**
+     * Update composer.json with module information.
+     *
+     * @throws FileNotFoundException
+     */
+    protected function updateComposerJson(string $moduleName): void
+    {
+        $composerPath = base_path('composer.json');
+
+        if (!$this->files->exists($composerPath)) {
+            throw new RuntimeException('composer.json not found');
+        }
+
+        $content = $this->files->get($composerPath);
+        $composer = json_decode($content, true);
+
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            throw new RuntimeException('Invalid composer.json: '.json_last_error_msg());
+        }
+
+        // Add module to require section
+        $composer['require'][$this->getModulePackageName($moduleName)] = '*';
+
+        // Add path repository if not exists
+        $folder = $this->getModuleFolder();
+        $this->addPathRepository($composer, $folder);
+
+        // Write back to composer.json
+        $json = json_encode($composer, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+
+        if ($json === false) {
+            throw new RuntimeException('Failed to encode composer.json');
+        }
+
+        $this->files->put($composerPath, $json.PHP_EOL);
+    }
+
+    /**
+     * Add path repository to composer.json if it doesn't exist.
+     */
+    protected function addPathRepository(array &$composer, string $folder): void
+    {
+        $repositories = $composer['repositories'] ?? [];
+        $pathUrl = "./$folder/*";
+
+        // Check if repository already exists
+        foreach ($repositories as $repo) {
+            if (isset($repo['type'], $repo['url']) &&
+                $repo['type'] === 'path' &&
+                Str::contains($repo['url'], $pathUrl)
+            ) {
+                return; // Repository already exists
+            }
+        }
+
+        // Add new repository
+        $composer['repositories'][] = [
+            'type' => 'path',
+            'url' => $pathUrl,
+            'options' => [
+                'symlink' => true,
+            ],
+        ];
+    }
+
+    /**
+     * Cleanup partially created module on error.
+     */
+    protected function cleanupModule(string $moduleName): void
+    {
+        $path = $this->getModulePath($moduleName);
+
+        if ($this->files->exists($path)) {
+            $this->files->deleteDirectory($path);
+            $this->components->warn("Cleaned up partially created module at: $path");
         }
     }
 
@@ -373,6 +330,237 @@ class ModuleMakeCommand extends GeneratorCommand
         return $this;
     }
 
+    protected function createModuleStructure(string $moduleName): void
+    {
+        $baseDirectories = [
+            'bootstrap' => true,
+            'config' => true,
+            'routes' => true,
+            'database/factories' => true,
+            'database/migrations' => true,
+            'database/seeders' => true,
+            'resources/views/components' => true,
+            'resources/views/errors' => true,
+            'resources/views/pages' => true,
+            'resources/views/partials' => true,
+            'resources/views/layouts/includes' => true,
+            'resources/assets/css' => true,
+            'resources/assets/js' => true,
+            'tests/Feature' => true,
+            'tests/Unit' => true,
+
+            'src/Providers' => true,
+            'src/Models' => true,
+            'src/Console/Commands' => true,
+            'src/Http/Controllers' => true,
+            'src/Http/Middleware' => true,
+            'src/Http/Requests' => true,
+            'src/Http/Resources' => true,
+            'src/Http/ViewComposers' => true,
+        ];
+
+        $optionalDirectories = [
+            'src/Enums' => false,
+            'src/Broadcasting' => false,
+            'src/Exceptions' => false,
+            'src/Events' => false,
+            'src/Jobs' => false,
+            'src/Listeners' => false,
+            'src/Mail' => false,
+            'src/Notifications' => false,
+            'src/Observers' => false,
+            'src/Policies' => false,
+            'src/Repositories' => false,
+            'src/Rules' => false,
+            'src/Services' => false,
+            'src/Traits' => false,
+            'src/Utils' => false,
+            'src/Validators' => false,
+        ];
+
+        // Create base module directory
+        $this->makeDirectory($this->getModulePath($moduleName));
+
+        // Create base directories
+        foreach ($baseDirectories as $dir => $gitKeep) {
+            $this->makeDirectory($this->getModulePath($moduleName, $dir), $gitKeep);
+        }
+
+        // Create optional directories if --all flag is set
+        if ($this->option('all')) {
+            foreach ($optionalDirectories as $dir => $gitKeep) {
+                $this->makeDirectory($this->getModulePath($moduleName, $dir), $gitKeep);
+            }
+        }
+    }
+
+    /**
+     * @throws FileNotFoundException
+     */
+    protected function createModuleFiles(string $moduleName): void
+    {
+        $namespace = $this->getModuleNamespace();
+
+        // Crate language directories based on Laravel version
+        $this->createLanguageStructure($moduleName);
+
+        // Create config file
+        $this->createConfigFile($moduleName);
+
+        // Create route files
+        $this->createRouteFiles($moduleName);
+
+        // Create helper file
+        $this->createHelperFile($moduleName);
+
+        // Create documentation files
+        $this->createDocumentationFiles($moduleName);
+
+        // Create service providers
+        $this->createServiceProviders($moduleName, $namespace);
+
+        // Create database seeder
+        $this->createDatabaseSeeder($moduleName, $namespace);
+    }
+
+    protected function createLanguageStructure(string $moduleName): void
+    {
+        if (version_compare($this->laravel->version(), '9.0.0') >= 0) {
+            $this->makeDirectory($this->getModulePath($moduleName, 'lang/en'));
+            $this->files->put(
+                $this->getModulePath($moduleName, 'lang/en.json'),
+                '{}'
+            );
+            $this->files->put(
+                $this->getModulePath($moduleName, 'lang/en/messages.php'),
+                $this->getMessagesStub()
+            );
+        } else {
+            $this->makeDirectory($this->getModulePath($moduleName, 'resources/lang/en'));
+            $this->files->put(
+                $this->getModulePath($moduleName, 'resources/lang/en/messages.php'),
+                $this->getMessagesStub()
+            );
+        }
+    }
+
+    protected function createConfigFile(string $moduleName): void
+    {
+        $this->files->put(
+            $this->getModulePath($moduleName, 'config/config.php'),
+            $this->getMessagesStub()
+        );
+    }
+
+    /**
+     * @throws FileNotFoundException
+     */
+    protected function createRouteFiles(string $moduleName): void
+    {
+        $routes = ['web', 'api', 'channels'];
+
+        foreach ($routes as $route) {
+            $stub = $this->files->get($this->getStub()."/routes/$route.stub");
+            $this->files->put(
+                $this->getModulePath($moduleName, "routes/$route.php"),
+                $this->writeFile($stub, $moduleName)
+            );
+        }
+    }
+
+    protected function createHelperFile(string $moduleName): void
+    {
+        $this->files->put(
+            $this->getModulePath($moduleName, 'src/helpers.php'),
+            "<?php\n\n/*\n * You can place your custom helper functions.\n */"
+        );
+    }
+
+    /**
+     * @throws FileNotFoundException
+     */
+    protected function createDocumentationFiles(string $moduleName): void
+    {
+        $docs = [
+            'CHANGELOG.md' => 'CHANGELOG',
+            'CODE_OF_CONDUCT.md' => 'CODE_OF_CONDUCT',
+            'README.md' => 'README',
+            'CONTRIBUTING.md' => 'CONTRIBUTING',
+            'LICENSE.md' => 'LICENSE',
+            'SECURITY.md' => 'SECURITY',
+        ];
+
+        foreach ($docs as $file => $stub) {
+            $this->files->put(
+                $this->getModulePath($moduleName, $file),
+                $this->files->get($this->getStub()."/$stub.stub")
+            );
+        }
+    }
+
+    /**
+     * @throws FileNotFoundException
+     */
+    protected function createServiceProviders(string $moduleName, string $namespace): void
+    {
+        $providers = [
+            'AppServiceProvider',
+            // 'BroadcastServiceProvider',
+            'EventServiceProvider',
+            'RouteServiceProvider',
+            'SeedServiceProvider',
+        ];
+
+        foreach ($providers as $provider) {
+            $this->buildProviderClass(
+                "$namespace\\$moduleName\\Providers\\$provider",
+                $this->getStub()."/Providers/$provider.stub"
+            );
+        }
+    }
+
+    /**
+     * @throws FileNotFoundException
+     */
+    protected function createDatabaseSeeder(string $moduleName, string $namespace): void
+    {
+        $seederStub = $this->files->get(__DIR__.'/stubs/seeder.stub');
+        $fullClassName = "$namespace\\$moduleName\\Database\\Seeders\\DatabaseSeeder";
+
+        $this->files->put(
+            $this->getModulePath($moduleName, 'database/seeders/DatabaseSeeder.php'),
+            $this->replaceNamespace($seederStub, $fullClassName)
+                ->replaceModuleName($seederStub, $moduleName)
+                ->replaceClass($seederStub, 'DatabaseSeeder')
+        );
+    }
+
+    protected function getMessagesStub(): string
+    {
+        return "<?php\n\n/*\n * You can place your custom module data in here.\n */\n\nreturn [\n\n];\n";
+    }
+
+    /**
+     * Validate the given module name.
+     *
+     * @param  string  $moduleName
+     * @return bool
+     */
+    protected function validateModuleName(string $moduleName): bool
+    {
+        if ($this->isReservedName($moduleName)) {
+            $this->components->error('The name "'.$moduleName.'" is reserved by PHP.');
+            return false;
+        }
+
+        if (preg_match('([^A-Za-z0-9_/\\\\])', $moduleName)) {
+            $this->components->error('Module name contains invalid characters.');
+            return false;
+        }
+
+        return true;
+    }
+
     /**
      * Get the console command arguments.
      *
@@ -381,7 +569,7 @@ class ModuleMakeCommand extends GeneratorCommand
     protected function getArguments(): array
     {
         return [
-            ['module', InputArgument::REQUIRED, 'Module name'],
+            ['module', InputArgument::REQUIRED, 'Module name that you want to create.'],
         ];
     }
 
@@ -394,6 +582,12 @@ class ModuleMakeCommand extends GeneratorCommand
     {
         return [
             ['all', 'a', InputOption::VALUE_NONE, 'Generate a module with all folder structure.'],
+            ['no-register', null, InputOption::VALUE_NONE, 'Create module without registering in composer.json'],
+            ['optimize', 'o', InputOption::VALUE_NONE, 'Optimize autoloader after creation'],
+            ['quiet', 'q', InputOption::VALUE_NONE, 'Suppress composer output'],
+            ['cleanup-on-error', null, InputOption::VALUE_NONE, 'Remove partially created module on error'],
+            ['force', 'f', InputOption::VALUE_NONE, 'Overwrite existing module'],
         ];
     }
+
 }

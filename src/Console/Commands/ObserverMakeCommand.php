@@ -85,7 +85,7 @@ class ObserverMakeCommand extends BaseGeneratorCommand
     }
 
     /**
-     * Get the fully-qualified model class name.
+     * Get the fully qualified model class name.
      *
      *
      * @throws InvalidArgumentException
@@ -140,8 +140,6 @@ class ObserverMakeCommand extends BaseGeneratorCommand
         if ($this->isReservedName($this->getNameInput()) || $this->didReceiveOptions($input)) {
             return;
         }
-
-        //  $this->components->bulletList($this->possibleModels());
 
         $model = $this->components->askWithCompletion(
             'What model should this observer apply to?',

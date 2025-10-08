@@ -1,32 +1,35 @@
 <?php
+declare(strict_types=1);
 
 namespace ErlandMuchasaj\Modules\Traits;
 
 use Illuminate\Support\Str;
 
+/**
+ * Trait to publish and register module configuration files.
+ */
 trait CanPublishConfiguration
 {
     /**
      * The root namespace to assume when generating URLs to actions.
+     * @var string
      */
     protected string $base = 'modules';
 
     /**
-     * Publish the given configuration file name (without extension) and the given module
+     * Publish the given configuration file name (without extension) and the given module.
      */
     public function publishConfig(string $module, string $fileName): void
     {
         if (app()->environment() === 'testing') {
             return;
         }
-
         $this->bootConfig($module, $fileName);
-
         $this->registerConfig($module, $fileName);
     }
 
     /**
-     * Publish the given configuration file name (without extension) and the given module
+     * Boot the config for publishing.
      */
     protected function bootConfig(string $module, string $fileName): void
     {
@@ -38,7 +41,7 @@ trait CanPublishConfiguration
     }
 
     /**
-     * Merge config og module to laravel configuration files
+     * Merge config of module to Laravel configuration files.
      */
     protected function registerConfig(string $module, string $fileName): void
     {

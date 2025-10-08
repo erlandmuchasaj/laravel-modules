@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 namespace ErlandMuchasaj\Modules\Support;
 
@@ -7,25 +8,26 @@ use Illuminate\Support\Facades\File;
 
 /**
  * Module Cache Manager
- *
- * Handles caching of module configurations, routes, and other data
- * to improve performance in production.
+ * Handles caching of module configurations, routes, and other data to improve performance in production.
  */
 class ModuleCacheManager
 {
     /**
      * Cache key prefix.
+     * @var string
      */
     protected string $prefix = 'modules';
 
     /**
      * Default cache TTL (1 hour).
+     * @var int
      */
     protected int $ttl = 3600;
 
-
     /**
-     * Get module configuration from cache or load it.
+     * Get module configuration from the cache or load it.
+     * @param string $module
+     * @return array|null
      */
     public function getModuleConfig(string $module): ?array
     {
@@ -44,6 +46,7 @@ class ModuleCacheManager
 
     /**
      * Get all registered modules.
+     * @return array
      */
     public function getRegisteredModules(): array
     {
@@ -211,7 +214,7 @@ class ModuleCacheManager
         return collect(File::directories($basePath))
             ->map(fn($dir) => basename($dir))
             ->filter(function ($module) use ($basePath) {
-                // Check if module has a valid service provider
+                // Check if the module has a valid service provider
                 $providerPath = $basePath . "/{$module}/src/Providers/AppServiceProvider.php";
                 return file_exists($providerPath);
             })
@@ -228,7 +231,7 @@ class ModuleCacheManager
     }
 
     /**
-     * Get module config path.
+     * Get module config-path.
      */
     protected function getModuleConfigPath(string $module): string
     {
@@ -236,7 +239,7 @@ class ModuleCacheManager
     }
 
     /**
-     * Get module route path.
+     * Get a module route path.
      */
     protected function getModuleRoutePath(string $module, string $file): string
     {
@@ -252,12 +255,11 @@ class ModuleCacheManager
     }
 
     /**
-     * Get module views path.
+     * Get module views-path.
      */
     protected function getModuleViewsPath(string $module): string
     {
         return base_path(config('modules.base', 'modules') . "/{$module}/resources/views");
     }
-
 
 }

@@ -32,7 +32,7 @@
         "irc": "irc://irc.freenode.org/composer"
     },
     "require": {
-        "erlandmuchasaj/laravel-modules": "^1.0"
+        "erlandmuchasaj/laravel-modules": "*"
     },
     "require-dev": {},
     "autoload": {

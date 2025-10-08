@@ -9,11 +9,22 @@ use Symfony\Component\Console\Input\InputOption;
 class TraitMakeCommand extends BaseGeneratorCommand
 {
     /**
-     * The name and signature of the console command.
+     * The console command name.
      *
      * @var string
      */
-    protected $signature = 'module:make-trait {module} {name} {--model=}';
+    protected $name = 'module:make-trait';
+
+    /**
+     * The name of the console command.
+     *
+     * This name is used to identify the command during lazy loading.
+     *
+     * @var string|null
+     *
+     * @deprecated
+     */
+    protected static $defaultName = 'module:make-trait';
 
     /**
      * The console command description.

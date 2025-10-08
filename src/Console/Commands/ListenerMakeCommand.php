@@ -5,7 +5,9 @@ namespace ErlandMuchasaj\Modules\Console\Commands;
 use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use Illuminate\Support\Str;
 use Symfony\Component\Console\Attribute\AsCommand;
+use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\Console\Output\OutputInterface;
 
 #[AsCommand(name: 'module:make-listener')]
 class ListenerMakeCommand extends BaseGeneratorCommand
@@ -121,4 +123,28 @@ class ListenerMakeCommand extends BaseGeneratorCommand
             ['queued', null, InputOption::VALUE_NONE, 'Indicates the event listener should be queued'],
         ];
     }
+
+    /**
+     * Interact further with the user if they were prompted for missing arguments.
+     *
+     * @param  InputInterface  $input
+     * @param  OutputInterface  $output
+     * @return void
+     */
+    protected function afterPromptingForMissingArguments(InputInterface $input, OutputInterface $output): void
+    {
+        if ($this->isReservedName($this->getNameInput()) || $this->didReceiveOptions($input)) {
+            return;
+        }
+
+        $event = $this->components->askWithCompletion(
+            'What event should be listened for? (Optional)',
+            $this->possibleEvents()
+        );
+
+        if ($event) {
+            $input->setOption('event', $event);
+        }
+    }
+
 }

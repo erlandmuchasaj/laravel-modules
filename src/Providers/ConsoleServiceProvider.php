@@ -14,7 +14,6 @@ class ConsoleServiceProvider extends ServiceProvider
      * @var array<int, class-string>
      */
     protected array $commands = [
-        Commands\AppVersion::class,
         Commands\AppInstall::class,
         Commands\CastMakeCommand::class,
         Commands\ScopeMakeCommand::class,
@@ -42,8 +41,10 @@ class ConsoleServiceProvider extends ServiceProvider
         Commands\MailMakeCommand::class,
         Commands\SeederMakeCommand::class,
         Commands\FactoryMakeCommand::class,
-        Commands\ModuleListCommand::class,
+        Commands\ViewMakeCommand::class,
         Commands\ModuleMakeCommand::class,
+        Commands\ModuleRemoveCommand::class,
+        Commands\ModuleListCommand::class,
         Commands\ModuleSeedCommand::class,
         Commands\ModuleSeedCheckCommand::class,
         Commands\ModuleSeedListCommand::class,

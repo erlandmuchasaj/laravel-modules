@@ -119,11 +119,11 @@ class TestMakeCommand extends BaseGeneratorCommand
         }
 
         $type = $this->components->choice('Which type of test would you like', [
-            'feature',
-            'unit',
-            'pest feature',
-            'pest unit',
-        ], default: 0);
+            'feature' => 'Feature (PHPUnit)',
+            'unit' => 'Unit (PHPUnit)',
+            'pest-feature' => 'Feature (Pest)',
+            'pest-unit' => 'Unit (Pest)',
+        ], default: 'feature');
 
         match ($type) {
             'feature' => null,

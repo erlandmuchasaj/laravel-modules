@@ -1,9 +1,14 @@
 <?php
+declare(strict_types=1);
 
 namespace ErlandMuchasaj\Modules\Facades;
 
 use Illuminate\Support\Facades\Facade;
 
+/**
+ * @method static mixed someModuleMethod(...$args) Example method annotation
+ * Facade for the module service.
+ */
 class Module extends Facade
 {
     /**

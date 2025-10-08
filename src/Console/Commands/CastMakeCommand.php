@@ -45,11 +45,9 @@ class CastMakeCommand extends BaseGeneratorCommand
      */
     protected function getStub(): string
     {
-        if ($this->option('inbound')) {
-            return $this->resolveStubPath('/stubs/cast.inbound.stub');
-        }
-
-        return $this->resolveStubPath('/stubs/cast.stub');
+        return $this->option('inbound')
+            ? $this->resolveStubPath('/stubs/cast.inbound.stub')
+            : $this->resolveStubPath('/stubs/cast.stub');
     }
 
     /**

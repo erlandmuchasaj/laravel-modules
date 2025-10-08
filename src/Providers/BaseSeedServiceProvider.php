@@ -68,7 +68,7 @@ abstract class BaseSeedServiceProvider extends ServiceProvider
     }
 
     /**
-     * Get a value that indicates whether the current command in console
+     * Get a value that indicates whether the current command in the console
      * contains a string in the specified $fields.
      *
      * @param  string|string[]  $contain_options

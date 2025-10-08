@@ -60,16 +60,16 @@ class ModelMakeCommand extends BaseGeneratorCommand
 
         if ($this->option('all')) {
             $this->input->setOption('traits', true);
-            $this->input->setOption('factory', true);
 
-            $this->input->setOption('migration', true);
+            $this->input->setOption('factory', true);
             $this->input->setOption('seed', true);
+            $this->input->setOption('migration', true);
 
             $this->input->setOption('controller', true);
-            $this->input->setOption('resource', true);
-            $this->input->setOption('api', true);
-
             $this->input->setOption('policy', true);
+            $this->input->setOption('resource', true);
+
+            $this->input->setOption('api', true);
         }
 
         if ($this->option('traits')) {
@@ -80,12 +80,12 @@ class ModelMakeCommand extends BaseGeneratorCommand
             $this->createFactory();
         }
 
-        if ($this->option('migration')) {
-            $this->createMigration();
-        }
-
         if ($this->option('seed')) {
             $this->createSeeder();
+        }
+
+        if ($this->option('migration')) {
+            $this->createMigration();
         }
 
         if ($this->option('controller') || $this->option('resource') || $this->option('api')) {
@@ -162,6 +162,8 @@ class ModelMakeCommand extends BaseGeneratorCommand
             '--model' => $this->option('resource') || $this->option('api') ? $modelName : null,
             '--api' => $this->option('api'),
             '--requests' => $this->option('requests') || $this->option('all'),
+            '--test' => $this->option('test'),
+            '--pest' => $this->option('pest'),
         ]));
     }
 
@@ -250,13 +252,17 @@ class ModelMakeCommand extends BaseGeneratorCommand
             ['pivot', 'p', InputOption::VALUE_NONE, 'Indicates if the generated model should be a custom intermediate table model'],
             ['resource', 'r', InputOption::VALUE_NONE, 'Indicates if the generated controller should be a resource controller'],
             ['api', null, InputOption::VALUE_NONE, 'Indicates if the generated controller should be an API controller'],
-            ['traits', 't', InputOption::VALUE_NONE, 'Separate eloquent attributes method in traits'],
             ['requests', 'R', InputOption::VALUE_NONE, 'Create new form request classes and use them in the resource controller'],
+            ['traits', 't', InputOption::VALUE_NONE, 'Separate eloquent attributes method in traits'],
         ];
     }
 
     /**
      * Interact further with the user if they were prompted for missing arguments.
+     *
+     * @param InputInterface $input
+     * @param OutputInterface $output
+     * @return void
      */
     protected function afterPromptingForMissingArguments(InputInterface $input, OutputInterface $output): void
     {
@@ -266,23 +272,20 @@ class ModelMakeCommand extends BaseGeneratorCommand
 
         /** @var array<int|string, mixed> $data */
         $data = $this->components->choice('Would you like any of the following?', [
-            'none',
-            'all',
-            'factory',
-            'form requests',
-            'migration',
-            'policy',
-            'resource controller',
-            'seed',
-        ], default: 0, multiple: true);
+            'none' => 'None',
+            'all' => 'All',
+            'seed' => 'Database Seeder',
+            'factory' => 'Factory',
+            'requests' => 'Form Requests',
+            'migration' => 'Migration',
+            'policy' => 'Policy',
+            'resource' => 'Resource Controller',
+            'controller' => 'Controller',
+            'traits' => 'Model Traits',
+        ], default: 'none', multiple: true);
 
         collect($data)
             ->reject('none')
-            ->map(fn ($option) => match ($option) {
-                'resource controller' => 'resource',
-                'form requests' => 'requests',
-                default => $option,
-            })
             ->each(fn ($option) => $input->setOption($option, true));
     }
 }

@@ -11,6 +11,8 @@ use Symfony\Component\Console\Input\InputOption;
 #[AsCommand(name: 'module:make-component')]
 class ComponentMakeCommand extends BaseGeneratorCommand
 {
+    use CreatesMatchingTest;
+
     /**
      * The console command name.
      *
@@ -34,7 +36,7 @@ class ComponentMakeCommand extends BaseGeneratorCommand
      *
      * @var string
      */
-    protected $description = 'Create a new component-class for the specified module.';
+    protected $description = 'Create a new view component class for the specified module.';
 
     /**
      * The type of class being generated.
@@ -56,7 +58,7 @@ class ComponentMakeCommand extends BaseGeneratorCommand
                 $this->info($this->type.' created successfully.');
             });
 
-            return null;
+            return false;
         }
 
         if (parent::handle() === false && ! $this->option('force')) {

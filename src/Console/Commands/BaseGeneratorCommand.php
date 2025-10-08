@@ -24,7 +24,7 @@ abstract class BaseGeneratorCommand extends GeneratorCommand
      */
     public function handle(): ?bool
     {
-        // check if module is already created and file exists
+        // check if a module is already created and a file exists
         if (! $this->moduleAlreadyExists()) {
             $this->components->error(
                 sprintf('Module [%s] does not exists, Please create a module first.', $this->getModuleInput())
@@ -47,7 +47,6 @@ abstract class BaseGeneratorCommand extends GeneratorCommand
 
         $moduleName = $this->getModuleInput();
 
-        // $path = "/modules/{$moduleName}/src/".str_replace('\\', '/', $name).'.php';
         $path = 'modules'.DIRECTORY_SEPARATOR.$moduleName.DIRECTORY_SEPARATOR.'src'.DIRECTORY_SEPARATOR.
             str_replace('\\', DIRECTORY_SEPARATOR, $name).'.php';
 
@@ -69,7 +68,7 @@ abstract class BaseGeneratorCommand extends GeneratorCommand
     }
 
     /**
-     * Resolve the fully-qualified path to the stub.
+     * Resolve the fully qualified path to the stub.
      */
     protected function resolveStubPath(string $stub): string
     {
@@ -81,9 +80,9 @@ abstract class BaseGeneratorCommand extends GeneratorCommand
     /**
      * Replace the namespace for the given stub.
      *
-     * We overwrite this command in order to put laravel App root name dynamically.
+     * We overwrite this command to put laravel App root name dynamically.
      *
-     * @example $this->rootNamespace() -> $this->laravel->getNamespace()
+     * @example $this->rootNamespace() => $this->laravel->getNamespace()
      *
      * @param  string  $stub
      * @param  string  $name
@@ -110,7 +109,7 @@ abstract class BaseGeneratorCommand extends GeneratorCommand
 
     /**
      * Get a list of possible model names.
-     * based on Module generated
+     * Based on Module generated
      *
      * @return array<int, string>
      */
@@ -123,8 +122,22 @@ abstract class BaseGeneratorCommand extends GeneratorCommand
             $modelPath = is_dir(app_path('Models')) ? app_path('Models') : app_path();
         }
 
-        return collect((new Finder)->files()->depth(['>= 0', '< 2'])->in($modelPath))
+        return collect(Finder::create()->files()->depth(['>= 0', '< 2'])->in($modelPath))
+            // ->map(function ($file) {
+            //     $tokens = token_get_all(file_get_contents($file->getRealPath()));
+            //     $isTrait = false;
+            //
+            //     foreach ($tokens as $token) {
+            //         if (is_array($token) && $token[0] === T_TRAIT) {
+            //             $isTrait = true;
+            //             break;
+            //         }
+            //     }
+            //     return $isTrait ? null : $file->getBasename('.php');
+            // })
             ->map(fn ($file) => $file->getBasename('.php'))
+            ->filter()
+            ->sort()
             ->values()
             ->all();
     }
@@ -171,6 +184,41 @@ abstract class BaseGeneratorCommand extends GeneratorCommand
     }
 
     /**
+     * Get the full module path.
+     */
+    protected function getModulePath(string $moduleName, ?string $subPath = null): string
+    {
+        $path = $this->getModuleFolder().DIRECTORY_SEPARATOR.$moduleName;
+        return $subPath ? $path.DIRECTORY_SEPARATOR.$subPath : $path;
+    }
+
+    /**
+     * Check if the module exists.
+     *
+     * @param string $moduleName
+     *
+     * @return bool
+     */
+    protected function moduleExists(string $moduleName): bool
+    {
+        return $this->files->exists($this->getModulePath($moduleName));
+    }
+
+    /**
+     * Get module package name.
+     *
+     * @param string $moduleName
+     *
+     * @return string
+     */
+    protected function getModulePackageName(string $moduleName): string
+    {
+        $folder = $this->getModuleFolder();
+        $snakeModuleName = Str::kebab($moduleName);
+        return "$folder/$snakeModuleName";
+    }
+
+    /**
      * Get the desired class name from the input.
      */
     protected function getModuleInput(): string
@@ -189,7 +237,7 @@ abstract class BaseGeneratorCommand extends GeneratorCommand
     }
 
     /**
-     * Check if module folder exists.
+     * Check if the module folder exists.
      */
     private function moduleAlreadyExists(): bool
     {
@@ -197,7 +245,7 @@ abstract class BaseGeneratorCommand extends GeneratorCommand
 
         // Next, We will check to see if the Module folder already exists.
         // If it doesn't, we don't want to create other related data.
-        // So, we will bail out and  the code is untouched.
+        // So, we will bail out and the code is untouched.
 
         return $this->files->exists('modules'.DIRECTORY_SEPARATOR.$moduleName);
     }
