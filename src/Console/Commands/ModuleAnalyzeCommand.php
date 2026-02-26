@@ -74,7 +74,7 @@ class ModuleAnalyzeCommand extends Command
         }
 
         // Check module size
-        $path = base_path(config('modules.base', 'modules') . "/{$module}");
+        $path = base_path($this->modulesDirectory() . "/{$module}");
         $size = $this->getDirectorySize($path);
         if ($size > 10 * 1024 * 1024) { // > 10MB
             $issues[] = '⚠ Large module size (' . $this->formatBytes($size) . ')';
@@ -100,6 +100,13 @@ class ModuleAnalyzeCommand extends Command
         }
     }
 
+
+    protected function modulesDirectory(): string
+    {
+        $folder = config('modules.folder') ?: config('modules.base', 'modules');
+
+        return trim((string) $folder, '/\\') ?: 'modules';
+    }
     protected function getDirectorySize(string $path): int
     {
         if (!is_dir($path)) {

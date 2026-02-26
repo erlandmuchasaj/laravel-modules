@@ -91,7 +91,7 @@ class ModuleListCommand extends Command
 
     protected function getModuleSize(string $module): string
     {
-        $path = base_path(config('modules.base', 'modules') . "/{$module}");
+        $path = base_path($this->modulesDirectory() . "/{$module}");
 
         if (!is_dir($path)) {
             return 'N/A';
@@ -129,10 +129,19 @@ class ModuleListCommand extends Command
      */
     public function getModules(): array
     {
-        if (! File::isDirectory(base_path('modules'))) {
+        $modulesPath = base_path($this->modulesDirectory());
+
+        if (! File::isDirectory($modulesPath)) {
             return [];
         }
 
-        return File::directories(base_path('modules'));
+        return File::directories($modulesPath);
+    }
+
+    protected function modulesDirectory(): string
+    {
+        $folder = config('modules.folder') ?: config('modules.base', 'modules');
+
+        return trim((string) $folder, '/\\') ?: 'modules';
     }
 }
