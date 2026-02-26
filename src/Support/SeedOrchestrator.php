@@ -11,7 +11,7 @@ use Symfony\Component\Console\Output\ConsoleOutput;
 class SeedOrchestrator
 {
     /**
-     * @var array<string, array{namespace: string, priority: int, dependencies: array}>
+     * @var array<string, array{namespace: string, priority: int, dependencies: array<int, string>}>
      */
     protected array $seeders = [];
 
@@ -35,7 +35,7 @@ class SeedOrchestrator
         $this->seeders[$namespace] = [
             'namespace' => $namespace,
             'priority' => $priority,
-            'dependencies' => $dependencies,
+            'dependencies' => array_values(array_unique($dependencies)),
         ];
     }
 
@@ -57,13 +57,16 @@ class SeedOrchestrator
     /**
      * Sort seeders by priority and dependencies.
      *
-     * @param array $seeders
-     * @return array
+     * @param array<string, array{namespace: string, priority: int, dependencies: array<int, string>}> $seeders
+     * @return array<int, array{namespace: string, priority: int, dependencies: array<int, string>}>
      */
     public function sortSeeders(array $seeders): array
     {
         // Sort by priority (descending)
-        usort($seeders, static fn($a, $b) => $b['priority'] <=> $a['priority']);
+        $seeders = array_values($seeders);
+
+        usort($seeders, static fn(array $a, array $b): int => $b['priority'] <=> $a['priority']);
+
         // Resolve dependencies using topological sort
         return $this->topologicalSort($seeders);
     }
@@ -71,41 +74,51 @@ class SeedOrchestrator
     /**
      * Topological sort to handle dependencies.
      *
-     * @param array $seeders
-     * @return array
-     */
+     * @param array<int, array{namespace: string, priority: int, dependencies: array<int, string>}> $seeders
+     * @return array<int, array{namespace: string, priority: int, dependencies: array<int, string>}>
+    */
     protected function topologicalSort(array $seeders): array
     {
         $sorted = [];
         $visited = [];
         $visiting = [];
         $seederMap = [];
+
         foreach ($seeders as $seeder) {
             $seederMap[$seeder['namespace']] = $seeder;
         }
-        $visit = function ($namespace) use (&$visit, &$sorted, &$visited, &$visiting, $seederMap) {
+
+        $visit = function (string $namespace) use (&$visit, &$sorted, &$visited, &$visiting, $seederMap): void
+        {
             if (isset($visited[$namespace])) {
                 return;
             }
+
             if (isset($visiting[$namespace])) {
                 throw new \RuntimeException("Circular dependency detected for seeder: {$namespace}");
             }
+
             $visiting[$namespace] = true;
             if (isset($seederMap[$namespace])) {
                 foreach ($seederMap[$namespace]['dependencies'] as $dependency) {
                     if (!isset($seederMap[$dependency])) {
                         throw new \RuntimeException("Missing dependency seeder: {$dependency} required by {$namespace}");
                     }
+
                     $visit($dependency);
                 }
+
                 $sorted[] = $seederMap[$namespace];
             }
+
             $visited[$namespace] = true;
             unset($visiting[$namespace]);
         };
+
         foreach ($seeders as $seeder) {
             $visit($seeder['namespace']);
         }
+
         return $sorted;
     }
 
@@ -117,12 +130,19 @@ class SeedOrchestrator
     protected function executeSeed(string $namespace): void
     {
         $output = new ConsoleOutput();
+
         $output->writeln("<comment>Seeding:</comment> $namespace");
+
         $startTime = microtime(true);
-        Artisan::call('db:seed', [
+        $exitCode = Artisan::call('db:seed', [
             '--class' => $namespace,
             '--force' => true,
         ]);
+
+        if ($exitCode !== 0) {
+            throw new \RuntimeException("Failed to execute module seeder [{$namespace}] with exit code {$exitCode}.");
+        }
+
         $runTime = round(microtime(true) - $startTime, 2);
         $output->writeln("<info>Seeded:</info> {$namespace} ({$runTime} seconds)");
     }
@@ -139,7 +159,7 @@ class SeedOrchestrator
     /**
      * Get all registered seeders.
      *
-     * @return array<string, array>
+     * @return array<string, array{namespace: string, priority: int, dependencies: array<int, string>}>
      */
     public function getSeeders(): array
     {

@@ -51,7 +51,7 @@ class ModulesServiceProvider extends ServiceProvider
 
 
     /**
-     * Setup seed orchestration to run after db:seed command.
+     * Set up seed orchestration to run after db:seed command.
      */
     protected function setupSeedOrchestration(): void
     {
@@ -61,7 +61,7 @@ class ModulesServiceProvider extends ServiceProvider
                 return;
             }
 
-            // Only if command was successful and output to console
+            // Only if the command was successful and output to the console
             if ($event->exitCode !== 0 || !($event->output instanceof ConsoleOutput)) {
                 return;
             }
@@ -93,7 +93,7 @@ class ModulesServiceProvider extends ServiceProvider
             }
         }
 
-        // For migrate commands, only run if --seed flag was provided
+        // For migrate commands, only the run if --seed flag was provided
         if (in_array($event->command, ['migrate:fresh', 'migrate:refresh'], true)) {
             if (!method_exists($input, 'getOption')) {
                 return false;
