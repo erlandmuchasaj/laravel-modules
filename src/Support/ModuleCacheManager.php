@@ -25,6 +25,19 @@ class ModuleCacheManager
     protected int $ttl = 3600;
 
     /**
+     * Resolve the configured modules directory.
+     *
+     * Supports both the current `modules.folder` key and the legacy
+     * `modules.base` key for backwards compatibility.
+     */
+    protected function modulesDirectory(): string
+    {
+        $folder = config('modules.folder') ?: config('modules.base', 'modules');
+
+        return trim((string) $folder, '/\\') ?: 'modules';
+    }
+
+    /**
      * Get module configuration from the cache or load it.
      * @param string $module
      * @return array|null
@@ -138,11 +151,20 @@ class ModuleCacheManager
      */
     public function clearAll(): void
     {
-        if (! Cache::supportsTags()) {
+        if (Cache::supportsTags()) {
+            Cache::tags($this->prefix)->flush();
+
             return;
         }
 
-        Cache::tags($this->prefix)->flush();
+        $modules = $this->getRegisteredModules();
+
+        Cache::forget($this->getCacheKey('registered'));
+        Cache::forget($this->getCacheKey('routes.manifest'));
+
+        foreach ($modules as $module) {
+            $this->clearModule($module);
+        }
     }
 
     /**
@@ -205,7 +227,7 @@ class ModuleCacheManager
      */
     protected function discoverModules(): array
     {
-        $basePath = base_path(config('modules.base', 'modules'));
+        $basePath = base_path($this->modulesDirectory());
 
         if (!is_dir($basePath)) {
             return [];
@@ -235,7 +257,7 @@ class ModuleCacheManager
      */
     protected function getModuleConfigPath(string $module): string
     {
-        return base_path(config('modules.base', 'modules') . "/{$module}/config/config.php");
+        return base_path($this->modulesDirectory() . "/{$module}/config/config.php");
     }
 
     /**
@@ -243,7 +265,7 @@ class ModuleCacheManager
      */
     protected function getModuleRoutePath(string $module, string $file): string
     {
-        return base_path(config('modules.base', 'modules') . "/{$module}/routes/{$file}");
+        return base_path($this->modulesDirectory() . "/{$module}/routes/{$file}");
     }
 
     /**
@@ -251,7 +273,7 @@ class ModuleCacheManager
      */
     protected function getModuleMigrationsPath(string $module): string
     {
-        return base_path(config('modules.base', 'modules') . "/{$module}/database/migrations");
+        return base_path($this->modulesDirectory() . "/{$module}/database/migrations");
     }
 
     /**
@@ -259,7 +281,7 @@ class ModuleCacheManager
      */
     protected function getModuleViewsPath(string $module): string
     {
-        return base_path(config('modules.base', 'modules') . "/{$module}/resources/views");
+        return base_path($this->modulesDirectory() . "/{$module}/resources/views");
     }
 
 }

@@ -94,7 +94,7 @@ class ModulesServiceProvider extends ServiceProvider
         }
 
         // For migrate commands, only run if --seed flag was provided
-        if (in_array($event->command, ['migrate:fresh', 'migrate:refresh'])) {
+        if (in_array($event->command, ['migrate:fresh', 'migrate:refresh'], true)) {
             if (!method_exists($input, 'getOption')) {
                 return false;
             }
@@ -104,11 +104,7 @@ class ModulesServiceProvider extends ServiceProvider
                 return false;
             }
 
-            /**
-             * todo: Consider adding an option to skip module seeds if --seeder is provided
-             * This would allow users to specify a custom seeder class and skip module seeds
-             * when using --seeder option. Uncomment the following lines to enable this behavior.
-             */
+            // Respect custom seeder classes to avoid double-seeding.
             if ($input->getOption('seeder')) {
                 return false;
             }
@@ -132,7 +128,7 @@ class ModulesServiceProvider extends ServiceProvider
             'migrate:refresh',
         ];
 
-        return in_array($command, $seedingCommands);
+        return in_array($command, $seedingCommands, true);
     }
 
 
