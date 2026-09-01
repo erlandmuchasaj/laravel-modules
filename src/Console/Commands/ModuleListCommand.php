@@ -79,7 +79,7 @@ class ModuleListCommand extends Command
                 $hasConfig ? 'Yes' : 'No',
                 $migrations,
                 $views,
-                $this->getModuleSize($module),
+                $this->getModuleSize($cache, $module),
             ];
         }
 
@@ -89,9 +89,9 @@ class ModuleListCommand extends Command
         );
     }
 
-    protected function getModuleSize(string $module): string
+    protected function getModuleSize(ModuleCacheManager $cache, string $module): string
     {
-        $path = base_path($this->modulesDirectory() . "/{$module}");
+        $path = base_path($cache->modulesDirectory() . "/{$module}");
 
         if (!is_dir($path)) {
             return 'N/A';
@@ -127,21 +127,14 @@ class ModuleListCommand extends Command
      *
      * @return array<int, string>
      */
-    public function getModules(): array
+    public function getModules(ModuleCacheManager $cache): array
     {
-        $modulesPath = base_path($this->modulesDirectory());
+        $modulesPath = base_path($cache->modulesDirectory());
 
         if (! File::isDirectory($modulesPath)) {
             return [];
         }
 
         return File::directories($modulesPath);
-    }
-
-    protected function modulesDirectory(): string
-    {
-        $folder = config('modules.folder') ?: config('modules.base', 'modules');
-
-        return trim((string) $folder, '/\\') ?: 'modules';
     }
 }

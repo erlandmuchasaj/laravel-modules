@@ -27,7 +27,8 @@ class ModuleSeedCommand extends Command
     public function handle(): int
     {
         $module = $this->argument('module');
-        $class = "Modules\\{$module}\\Database\\Seeders\\DatabaseSeeder";
+        $namespace = config('modules.namespace', 'Modules');
+        $class = "{$namespace}\\{$module}\\Database\\Seeders\\DatabaseSeeder";
 
         if (!class_exists($class)) {
             $this->error("Seeder class not found: {$class}");

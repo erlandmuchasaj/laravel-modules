@@ -30,7 +30,7 @@ class ModuleCacheManager
      * Supports both the current `modules.folder` key and the legacy
      * `modules.base` key for backwards compatibility.
      */
-    protected function modulesDirectory(): string
+    public function modulesDirectory(): string
     {
         $folder = config('modules.folder') ?: config('modules.base', 'modules');
 
@@ -148,16 +148,12 @@ class ModuleCacheManager
 
     /**
      * Clear all module caches.
+     * Always uses explicit key-based clearing to match how data was written (no tags on writes).
      */
     public function clearAll(): void
     {
-        if (Cache::supportsTags()) {
-            Cache::tags($this->prefix)->flush();
-
-            return;
-        }
-
-        $modules = $this->getRegisteredModules();
+        // Collect modules before forgetting the registered-modules key itself
+        $modules = Cache::get($this->getCacheKey('registered'), []);
 
         Cache::forget($this->getCacheKey('registered'));
         Cache::forget($this->getCacheKey('routes.manifest'));
@@ -242,6 +238,15 @@ class ModuleCacheManager
             })
             ->values()
             ->toArray();
+    }
+
+    /**
+     * Check whether a specific cache entry for a module is present.
+     * Accepted types: 'config', 'migrations', 'views'.
+     */
+    public function hasCached(string $module, string $type): bool
+    {
+        return Cache::has($this->getCacheKey("{$type}.{$module}"));
     }
 
     /**

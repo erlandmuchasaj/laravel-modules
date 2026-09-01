@@ -39,6 +39,12 @@ abstract class BaseRouteServiceProvider extends ServiceProvider
      */
     protected array $apiMiddleware = ['api'];
 
+    /**
+     * Per-instance cache for file_exists results.
+     * Instance property (not static) so Octane workers see fresh state per boot.
+     */
+    private array $routeFileCache = [];
+
     abstract protected function getWebRoute(): string;
 
     abstract protected function getApiRoute(): string;
@@ -127,18 +133,17 @@ abstract class BaseRouteServiceProvider extends ServiceProvider
     }
 
     /**
-     * Check if route file exists with caching.
+     * Check if route file exists with per-instance caching.
+     * Uses an instance property (not a static) so Octane/Swoole workers can
+     * get fresh results across requests when the provider is re-instantiated.
      */
     protected function routeFileExists(string $path): bool
     {
-        // Cache the file existence check to avoid filesystem hits
-        static $cache = [];
-
-        if (!isset($cache[$path])) {
-            $cache[$path] = $path && file_exists($path);
+        if (!isset($this->routeFileCache[$path])) {
+            $this->routeFileCache[$path] = $path && file_exists($path);
         }
 
-        return $cache[$path];
+        return $this->routeFileCache[$path];
     }
 
         /**

@@ -226,6 +226,8 @@ class ViewMakeCommand extends BaseGeneratorCommand
         return [
             ['extension', null, InputOption::VALUE_OPTIONAL, 'The extension of the generated view', 'blade.php'],
             ['force', 'f', InputOption::VALUE_NONE, 'Create the view even if the view already exists'],
+            ['test', null, InputOption::VALUE_NONE, 'Generate an accompanying PHPUnit test for the view'],
+            ['pest', null, InputOption::VALUE_NONE, 'Generate an accompanying Pest test for the view'],
         ];
     }
 }

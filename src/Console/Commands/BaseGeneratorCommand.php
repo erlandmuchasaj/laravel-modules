@@ -251,6 +251,43 @@ abstract class BaseGeneratorCommand extends GeneratorCommand
         return $this->moduleExists($moduleName);
     }
 
+
+    /**
+     * Qualify the given model class base name.
+     *
+     * @param  string  $model
+     * @return string
+     */
+    protected function qualifyModel(string $model): string
+    {
+        $model = ltrim($model, '\\/');
+
+        $model = str_replace('/', '\\', $model);
+
+        $rootNamespace = $this->rootNamespace();
+
+        if (Str::startsWith($model, $rootNamespace)) {
+            return $model;
+        }
+
+        $modelPath = base_path('modules'.DIRECTORY_SEPARATOR.$this->getModuleInput().DIRECTORY_SEPARATOR.'src'
+            .DIRECTORY_SEPARATOR.'Models');
+
+        if (is_dir($modelPath)) {
+            // Module models follow the convention Models\{Name}\{Name} (each model in its own subdirectory).
+            // A bare class name like "Licence" must become "Models\Licence\Licence", not just "Models\Licence".
+            // A path already containing a backslash (e.g. "Licence\Licence") is used as-is.
+            if (! Str::contains($model, '\\')) {
+                return $rootNamespace.'Models\\'.$model.'\\'.$model;
+            }
+
+            return $rootNamespace.'Models\\'.$model;
+        }
+
+        return $rootNamespace.$model;
+    }
+
+
     /**
      * Get the console command arguments.
      *

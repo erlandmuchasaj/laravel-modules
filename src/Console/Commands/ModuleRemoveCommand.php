@@ -92,9 +92,9 @@ class ModuleRemoveCommand extends BaseGeneratorCommand
             passthru($command, $exitCode);
 
             if ($exitCode === 0) {
-                $this->components->info('Module registered successfully!');
+                $this->components->info('Module removed from composer.json successfully.');
             } else {
-                throw new RuntimeException('Composer update failed');
+                throw new RuntimeException('Composer remove failed');
             }
 
         } catch (Throwable $e) {

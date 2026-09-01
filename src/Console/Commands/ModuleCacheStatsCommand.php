@@ -68,7 +68,6 @@ class ModuleCacheStatsCommand extends Command
 
     protected function getCacheStatus(ModuleCacheManager $cache, string $module, string $type): string
     {
-        $key = "modules.{$type}.{$module}";
-        return \Cache::has($key) ? '✓ Cached' : '✗ Not Cached';
+        return $cache->hasCached($module, $type) ? '✓ Cached' : '✗ Not Cached';
     }
 }

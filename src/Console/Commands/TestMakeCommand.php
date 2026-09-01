@@ -64,9 +64,10 @@ class TestMakeCommand extends BaseGeneratorCommand
     protected function getPath($name): string
     {
         $name = Str::replaceFirst($this->rootNamespace(), '', $name);
+        $name = ltrim(str_replace('\\', DIRECTORY_SEPARATOR, $name), DIRECTORY_SEPARATOR);
 
         $path = 'modules'.DIRECTORY_SEPARATOR.$this->getModuleInput().DIRECTORY_SEPARATOR.'tests'
-            .DIRECTORY_SEPARATOR.str_replace('\\', '/', $name).'.php';
+            .DIRECTORY_SEPARATOR.$name.'.php';
 
         return base_path($path);
     }

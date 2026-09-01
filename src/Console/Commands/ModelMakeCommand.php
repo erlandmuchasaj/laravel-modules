@@ -54,22 +54,22 @@ class ModelMakeCommand extends BaseGeneratorCommand
      */
     public function handle(): ?bool
     {
-        if (parent::handle() === false && ! $this->option('force')) {
-            return false;
+        // Expand --all BEFORE parent::handle() so getStub() receives the correct options.
+        // parent::handle() calls buildClass() → getStub(), so --traits must be set first
+        // or the model will be written with model.stub instead of model-with-traits.stub.
+        if ($this->option('all')) {
+            $this->input->setOption('controller', true);
+            $this->input->setOption('factory', true);
+            $this->input->setOption('migration', true);
+            $this->input->setOption('policy', true);
+            $this->input->setOption('seed', true);
+            $this->input->setOption('resource', true);
+            $this->input->setOption('api', true);
+            $this->input->setOption('traits', true);
         }
 
-        if ($this->option('all')) {
-            $this->input->setOption('traits', true);
-
-            $this->input->setOption('factory', true);
-            $this->input->setOption('seed', true);
-            $this->input->setOption('migration', true);
-
-            $this->input->setOption('controller', true);
-            $this->input->setOption('policy', true);
-            $this->input->setOption('resource', true);
-
-            $this->input->setOption('api', true);
+        if (parent::handle() === false && ! $this->option('force')) {
+            return false;
         }
 
         if ($this->option('traits')) {
@@ -101,14 +101,22 @@ class ModelMakeCommand extends BaseGeneratorCommand
 
     /**
      * Create a model factory for the model.
+     *
+     * The factory is placed in a subdirectory matching the model's subdirectory so
+     * Laravel's HasFactory convention resolves it automatically:
+     *   Modules\Event\Models\Transaction\Transaction
+     *     → Modules\Event\Database\Factories\Transaction\TransactionFactory
      */
     protected function createFactory(): void
     {
-        $factory = Str::studly(class_basename($this->argument('name')));
+        $modelName = $this->getNameInput();  // e.g. "Transaction"
+        $factory   = Str::studly(class_basename($this->argument('name'))); // e.g. "Transaction"
 
         $this->call('module:make-factory', [
             'module' => $this->getModuleInput(),
-            'name' => "{$factory}Factory",
+            // Pass as subdirectory path so factory lives alongside the model:
+            // database/factories/Transaction/TransactionFactory.php
+            'name'   => "{$modelName}\\{$factory}Factory",
             '--model' => $this->qualifyClass($this->getNameInput()),
         ]);
     }
@@ -139,7 +147,7 @@ class ModelMakeCommand extends BaseGeneratorCommand
     {
         $seeder = Str::studly(class_basename($this->argument('name')));
 
-        $this->call('module:make-seed', [
+        $this->call('module:make-seeder', [
             'module' => $this->getModuleInput(),
             'name' => "{$seeder}Seeder",
         ]);
@@ -226,6 +234,14 @@ class ModelMakeCommand extends BaseGeneratorCommand
     /**
      * Get the default namespace for the class.
      *
+     * Each model lives in its own subdirectory so related traits, scopes, and
+     * value objects can sit alongside it in the same namespace.
+     *
+     * Example: module:make-model Event Transaction
+     *   File:      modules/Event/src/Models/Transaction/Transaction.php
+     *   Namespace: Modules\Event\Models\Transaction
+     *   Use:       use Modules\Event\Models\Transaction\Transaction;
+     *
      * @param  string  $rootNamespace
      */
     protected function getDefaultNamespace($rootNamespace): string
@@ -253,7 +269,9 @@ class ModelMakeCommand extends BaseGeneratorCommand
             ['resource', 'r', InputOption::VALUE_NONE, 'Indicates if the generated controller should be a resource controller'],
             ['api', null, InputOption::VALUE_NONE, 'Indicates if the generated controller should be an API controller'],
             ['requests', 'R', InputOption::VALUE_NONE, 'Create new form request classes and use them in the resource controller'],
-            ['traits', 't', InputOption::VALUE_NONE, 'Separate eloquent attributes method in traits'],
+            ['traits', 't', InputOption::VALUE_NONE, 'Separate eloquent attributes methods into traits'],
+            ['test', null, InputOption::VALUE_NONE, 'Generate an accompanying PHPUnit test for the controller'],
+            ['pest', null, InputOption::VALUE_NONE, 'Generate an accompanying Pest test for the controller'],
         ];
     }
 

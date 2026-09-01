@@ -46,6 +46,11 @@ class ModulesServiceProvider extends ServiceProvider
             return new SeedOrchestrator();
         });
 
+        // Bind 'modules' so the Module facade resolves correctly
+        $this->app->singleton(static::$abstract, function ($app) {
+            return $app->make(\ErlandMuchasaj\Modules\Support\ModuleCacheManager::class);
+        });
+
         $this->app->register(ConsoleServiceProvider::class);
     }
 
@@ -86,9 +91,15 @@ class ModulesServiceProvider extends ServiceProvider
 
         // Don't run if a specific class was provided to db:seed
         if ($event->command === 'db:seed' && method_exists($input, 'getOption')) {
-            // Check if --class option is provided and is not the default DatabaseSeeder
             $seeder = $input->getOption('class');
-            if ($seeder && $seeder !== 'Database\\Seeders\\DatabaseSeeder') {
+            // Accept both short form ("DatabaseSeeder") and fully-qualified form
+            $defaultSeeders = [
+                null,
+                '',
+                'Database\\Seeders\\DatabaseSeeder',
+                'DatabaseSeeder',
+            ];
+            if ($seeder !== null && !in_array($seeder, $defaultSeeders, true)) {
                 return false;
             }
         }

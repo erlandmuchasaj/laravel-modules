@@ -126,8 +126,29 @@ abstract class BaseAppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Teach Laravel's HasFactory resolver to handle the per-model subdirectory
+        // convention used by this package.
+        //
+        // Convention: Modules\{Name}\Models\{Sub}\{Class}
+        //           → Modules\{Name}\Database\Factories\{Sub}\{Class}Factory
+        //
+        // All module service providers inherit this base class and call boot().
+        // Registering the same closure multiple times is safe — the last writing wins,
+        // but every writing is identical logic.
+        /**
+         * @note: does not work on this PHP version
+         */
+        // Model::resolveFactoryNamesUsing(static function (string $modelClass): string {
+        //     if (str_contains($modelClass, '\\Models\\')) {
+        //         return str_replace('\\Models\\', '\\Database\\Factories\\', $modelClass).'Factory';
+        //     }
+        //
+        //     // Standard App\Models\Foo → Database\Factories\FooFactory fallback
+        //     return str_replace(['App\\Models\\', 'App\\'], ['Database\\Factories\\', 'Database\\Factories\\'], $modelClass).'Factory';
+        // });
+
         // $this->app->booted(function () {
-        //      # do something after boot for example configure a command to run and register it in schedule runnner
+        //      # do something after boot for example configure a command to run and register it in schedule runner
         //     /** @var Schedule */
         //     $schedule = $this->app->make(\Illuminate\Console\Scheduling\Schedule::class);
         //     $schedule->command('modules:check')
@@ -136,7 +157,7 @@ abstract class BaseAppServiceProvider extends ServiceProvider
         //         ->sendOutputTo(storage_path('logs/laravel-modules.log'), true)
         //         ->when(config('modules.scheduling.enabled'));
         // });
- 
+
         /**
          * @todo we can also separate boot and register config on boot and register methods.
          */
@@ -148,6 +169,9 @@ abstract class BaseAppServiceProvider extends ServiceProvider
 
         // boot Factories
         $this->bootFactories();
+
+        // bootSeeders
+        $this->bootSeeders();
 
         // boot translations
         $this->bootTranslations();
@@ -312,9 +336,7 @@ abstract class BaseAppServiceProvider extends ServiceProvider
      */
     protected function bootBladeDirective(): void
     {
-        if (app()->environment() === 'testing') {
-            logger('This is running tests!');
-        }
+        // Override in subclasses to register custom Blade directives and components.
     }
 
     /**
@@ -342,13 +364,13 @@ abstract class BaseAppServiceProvider extends ServiceProvider
             return;
         }
 
-        // Model::observe(ModelObserver::class);
-        // Ex: User::observe(UserObserver::class);
         foreach ($this->observers as $className => $observerName) {
-            $classObj = app($className);
-            if (! is_null($classObj)) {
-                $classObj::observe($observerName);
-            }
+            // $classObj = app($className);
+            // if (! is_null($classObj)) {
+            //     $classObj::observe($observerName);
+            // }
+
+            $className::observe($observerName);
         }
     }
 
@@ -382,7 +404,7 @@ abstract class BaseAppServiceProvider extends ServiceProvider
 
     /**
      * Register views & Publish views.
-     * This function registers views, components and assets.
+     * This function registers views, components, and assets.
      *
      * @throws BindingResolutionException
      */
@@ -459,9 +481,26 @@ abstract class BaseAppServiceProvider extends ServiceProvider
     }
 
     /**
-     * Register an additional directory of factories.
+     * Publish module factories to the application database/factories directory.
      */
     protected function bootFactories(): void
+    {
+        if (! $this->app->runningInConsole()) {
+            return;
+        }
+
+        $factoriesPath = base_path(
+            $this->base.DIRECTORY_SEPARATOR.$this->module().DIRECTORY_SEPARATOR.'database'.DIRECTORY_SEPARATOR.'factories'
+        );
+
+        if (is_dir($factoriesPath)) {
+            $this->publishes([
+                $factoriesPath => database_path('factories'),
+            ], 'factories');
+        }
+    }
+
+    protected function bootSeeders(): void
     {
         if ($this->app->runningInConsole()) {
             $this->publishes([
@@ -489,8 +528,8 @@ abstract class BaseAppServiceProvider extends ServiceProvider
     protected function modulePath(string $path = ''): string
     {
         $basePath = base_path($this->base . '/' . $this->module());
-        
+
         return $path ? $basePath . '/' . $path : $basePath;
     }
-    
+
 }

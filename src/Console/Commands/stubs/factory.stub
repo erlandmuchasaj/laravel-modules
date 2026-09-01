@@ -14,7 +14,7 @@ class {{ factory }}Factory extends Factory
      *
      * @var class-string<\{{ namespacedModel }}>
      */
-    protected $model = {{ model }}::class;
+    protected $model = \{{ namespacedModel }}::class;
 
     /**
      * Define the model's default state.

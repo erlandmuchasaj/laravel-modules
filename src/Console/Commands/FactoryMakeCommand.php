@@ -67,10 +67,21 @@ class FactoryMakeCommand extends BaseGeneratorCommand
 
         $model = class_basename($namespaceModel);
 
-        if (Str::startsWith($namespaceModel, $this->rootNamespace().'Models')) {
-            $namespace = Str::beforeLast($this->getDefaultNamespace(trim($this->rootNamespace(), '\\')).'\\'.Str::after($namespaceModel, $this->rootNamespace().'Models\\'), '\\');
+        // Mirror the model's subdirectory in the factory namespace so Laravel's
+        // HasFactory convention resolves the factory without a newFactory() override.
+        //   Model:   Modules\Event\Models\Transaction\Transaction
+        //   Factory: Modules\Event\Database\Factories\Transaction\TransactionFactory
+        $baseFactoryNamespace = $this->getDefaultNamespace(trim($this->rootNamespace(), '\\'));
+
+        $modelsKey = $this->rootNamespace().'Models\\';
+        if (Str::startsWith($namespaceModel, $modelsKey)) {
+            $afterModels = Str::after($namespaceModel, $modelsKey); // e.g. "Transaction\Transaction"
+            $modelSubdir = Str::beforeLast($afterModels, '\\');     // e.g. "Transaction"
+            $namespace = $modelSubdir
+                ? $baseFactoryNamespace.'\\'.$modelSubdir
+                : $baseFactoryNamespace;
         } else {
-            $namespace = $this->getDefaultNamespace(trim($this->rootNamespace(), '\\'));
+            $namespace = $baseFactoryNamespace;
         }
 
         $replace = [
@@ -126,7 +137,7 @@ class FactoryMakeCommand extends BaseGeneratorCommand
             .DIRECTORY_SEPARATOR.'Models');
 
         if (is_dir($modelPath)) {
-            return $this->rootNamespace().'Models'.'\\' . $name . '\\' . 'Model';
+            return $this->qualifyModel($name);
         }
 
         return $this->rootNamespace().'Model';
@@ -151,33 +162,6 @@ class FactoryMakeCommand extends BaseGeneratorCommand
     {
         return $rootNamespace.'\\Database\\Factories';
     }
-
-    /**
-     * Qualify the given model class base name.
-     *
-     * @param  string  $model
-     * @return string
-     */
-    protected function qualifyModel(string $model): string
-    {
-        $model = ltrim($model, '\\/');
-
-        $model = str_replace('/', '\\', $model);
-
-        $rootNamespace = $this->rootNamespace();
-
-        if (Str::startsWith($model, $rootNamespace)) {
-            return $model;
-        }
-
-        $modelPath = base_path('modules'.DIRECTORY_SEPARATOR.$this->getModuleInput().DIRECTORY_SEPARATOR.'src'
-            .DIRECTORY_SEPARATOR.'Models');
-
-        return is_dir($modelPath)
-            ? $rootNamespace.'Models\\'.$model.'\\'.$model
-            : $rootNamespace.$model;
-    }
-
 
     /**
      * Get the console command options.

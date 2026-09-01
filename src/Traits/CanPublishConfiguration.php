@@ -18,13 +18,14 @@ trait CanPublishConfiguration
 
     /**
      * Publish the given configuration file name (without extension) and the given module.
+     * Publishing (vendor:publish) is skipped in the testing environment, but config merging
+     * always runs so that module config values are available in tests.
      */
     public function publishConfig(string $module, string $fileName): void
     {
-        if (app()->environment() === 'testing') {
-            return;
+        if (! app()->environment('testing')) {
+            $this->bootConfig($module, $fileName);
         }
-        $this->bootConfig($module, $fileName);
         $this->registerConfig($module, $fileName);
     }
 
@@ -34,8 +35,10 @@ trait CanPublishConfiguration
     protected function bootConfig(string $module, string $fileName): void
     {
         if (app()->runningInConsole()) {
+            // Use forward slashes for cross-platform config path compatibility
+            $publishTarget = config_path(Str::lower($this->base.'/'.$module.'/'.$fileName).'.php');
             $this->publishes([
-                $this->getModuleConfigFilePath($module, $fileName) => config_path(Str::lower($this->base.DIRECTORY_SEPARATOR.$module.DIRECTORY_SEPARATOR.$fileName).'.php'),
+                $this->getModuleConfigFilePath($module, $fileName) => $publishTarget,
             ], 'config');
         }
     }

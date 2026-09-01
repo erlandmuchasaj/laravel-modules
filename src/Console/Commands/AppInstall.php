@@ -41,41 +41,25 @@ class AppInstall extends Command
      */
     public function handle(): int
     {
-        if ($this->emcmsAlreadyInstalled()) {
-            $this->line('EMCMS module is already installed for this project.');
-
-            return CommandAlias::FAILURE;
-        }
-
         $this->checkForEnvFile();
 
-        // running `php artisan migrate`
         $this->warn('Step: Migrating all tables into database...');
-        $migrate = shell_exec('php artisan migrate:fresh');
-        $this->info((string) $migrate);
+        $this->call('migrate:fresh');
 
-        // running `php artisan db:seed`
-        $this->warn('Step: seeding basic data for kickstarter...');
-        $result = shell_exec('php artisan db:seed');
-        $this->info((string) $result);
+        $this->warn('Step: Seeding basic data for kickstarter...');
+        $this->call('db:seed');
 
-        // running `php artisan vendor:publish --all`
         $this->warn('Step: Publishing Assets and Configurations...');
-        $result = shell_exec('php artisan vendor:publish --all');
-        $this->info((string) $result);
+        $this->call('vendor:publish', ['--all' => true]);
 
-        // running `php artisan storage:link`
         $this->warn('Step: Linking Storage directory...');
-        $result = shell_exec('php artisan storage:link');
-        $this->info((string) $result);
+        $this->call('storage:link');
 
-        // running `composer dump-autoload`
-        $this->warn('Step: Composer Autoload and clear all cache files...');
-        $result = shell_exec('composer clear-all');
-        $this->info((string) $result);
+        $this->warn('Step: Dumping autoloader...');
+        passthru(PHP_BINARY.' '.base_path('vendor/bin/composer').' dump-autoload --no-interaction');
 
         $this->info('-----------------------------');
-        $this->info('Now, run `php artisan serve` to start using EMCMS system.');
+        $this->info("Now, run `php artisan serve` to start your application.");
         $this->comment('Create something amazing!');
         $this->info('Cheers!');
 
@@ -139,20 +123,6 @@ class AppInstall extends Command
             $key.$value,
             (string) file_get_contents($path)
         ));
-    }
-
-    /**
-     * Determine if EMCMS module system is already installed.
-     */
-    protected function emcmsAlreadyInstalled(): bool
-    {
-        if ($file = file_get_contents(base_path('composer.json'))) {
-            $composer = json_decode($file, true);
-
-            return isset($composer['require']['modules/core']);
-        }
-
-        return false;
     }
 
     // /**
