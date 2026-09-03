@@ -47,10 +47,10 @@ class ModulesServiceProvider extends ServiceProvider
             return new SeedOrchestrator();
         });
 
-        // Bind 'modules' so the Module facade resolves correctly
-        $this->app->singleton(static::$abstract, function ($app) {
-            return $app->make(ModuleCacheManager::class);
-        });
+
+        // Fixed — one canonical singleton, one alias
+        $this->app->singleton(ModuleCacheManager::class);
+        $this->app->alias(ModuleCacheManager::class, static::$abstract);
 
         $this->app->register(ConsoleServiceProvider::class);
     }

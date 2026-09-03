@@ -47,7 +47,7 @@ abstract class BaseGeneratorCommand extends GeneratorCommand
 
         $moduleName = $this->getModuleInput();
 
-        $path = 'modules'.DIRECTORY_SEPARATOR.$moduleName.DIRECTORY_SEPARATOR.'src'.DIRECTORY_SEPARATOR.
+        $path = $this->getModuleFolder().DIRECTORY_SEPARATOR.$moduleName.DIRECTORY_SEPARATOR.'src'.DIRECTORY_SEPARATOR.
             str_replace('\\', DIRECTORY_SEPARATOR, $name).'.php';
 
         return  base_path($path);
@@ -62,7 +62,7 @@ abstract class BaseGeneratorCommand extends GeneratorCommand
     {
         $moduleName = $this->getModuleInput();
 
-        $views = base_path('modules'.DIRECTORY_SEPARATOR.$moduleName.DIRECTORY_SEPARATOR.'resources'.DIRECTORY_SEPARATOR.'views');
+        $views = base_path($this->getModuleFolder().DIRECTORY_SEPARATOR.$moduleName.DIRECTORY_SEPARATOR.'resources'.DIRECTORY_SEPARATOR.'views');
 
         return $views.($path ? DIRECTORY_SEPARATOR.$path : $path);
     }
@@ -115,7 +115,7 @@ abstract class BaseGeneratorCommand extends GeneratorCommand
      */
     protected function possibleModels(): array
     {
-        $modelPath = base_path('modules'.DIRECTORY_SEPARATOR.$this->getModuleInput().DIRECTORY_SEPARATOR.'src'
+        $modelPath = base_path($this->getModuleFolder().DIRECTORY_SEPARATOR.$this->getModuleInput().DIRECTORY_SEPARATOR.'src'
             .DIRECTORY_SEPARATOR.'Models');
 
         if (! is_dir($modelPath)) {
@@ -150,7 +150,7 @@ abstract class BaseGeneratorCommand extends GeneratorCommand
      */
     protected function possibleEvents(): array
     {
-        $eventPath = base_path('modules'.DIRECTORY_SEPARATOR.$this->getModuleInput().DIRECTORY_SEPARATOR.'src'
+        $eventPath = base_path($this->getModuleFolder().DIRECTORY_SEPARATOR.$this->getModuleInput().DIRECTORY_SEPARATOR.'src'
             .DIRECTORY_SEPARATOR.'Events');
 
         if (! is_dir($eventPath)) {
@@ -270,7 +270,8 @@ abstract class BaseGeneratorCommand extends GeneratorCommand
             return $model;
         }
 
-        $modelPath = base_path('modules'.DIRECTORY_SEPARATOR.$this->getModuleInput().DIRECTORY_SEPARATOR.'src'
+        $modelPath = base_path($this->getModuleFolder().DIRECTORY_SEPARATOR.$this->getModuleInput()
+            .DIRECTORY_SEPARATOR.'src'
             .DIRECTORY_SEPARATOR.'Models');
 
         if (is_dir($modelPath)) {

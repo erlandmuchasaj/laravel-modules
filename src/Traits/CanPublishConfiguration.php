@@ -17,6 +17,13 @@ trait CanPublishConfiguration
     protected string $base = 'modules';
 
     /**
+     * For php 8.5 ad up.
+     */
+    // protected string $base {
+    //     get => config('modules.folder', 'modules');
+    // }
+
+    /**
      * Publish the given configuration file name (without extension) and the given module.
      * Publishing (vendor:publish) is skipped in the testing environment, but config merging
      * always runs so that module config values are available in tests.

@@ -297,6 +297,14 @@ abstract class BaseAppServiceProvider extends ServiceProvider
      */
     protected function bootMiddleware(): void
     {
+        // Skip the booted() closure entirely when nothing is registered
+        $hasMiddleware = ! empty($this->middleware)
+            || ! empty($this->routeMiddleware)
+            || ! empty(array_filter(array_map('array_filter', $this->middlewareGroups)));
+        if (! $hasMiddleware) {
+            return;
+        }
+
         $this->app->booted(function ($app) {
             // Register global middleware
             $kernel = $app->make(Kernel::class);
@@ -410,9 +418,6 @@ abstract class BaseAppServiceProvider extends ServiceProvider
      */
     protected function bootViews(): void
     {
-        // This will allow the usage of package components by their vendor namespace using the package-name:: syntax.
-        // ex: <x-core::calendar /> <x-core::alert /> <x-core::forms.input /> # for subdirectories.
-        Blade::componentNamespace('\\Modules\\'.$this->module().'\\View\\Components', $this->module(true));
 
         $basePath = base_path($this->base.DIRECTORY_SEPARATOR.$this->module().DIRECTORY_SEPARATOR);
 
@@ -421,6 +426,12 @@ abstract class BaseAppServiceProvider extends ServiceProvider
         $assetsPath = $basePath.'resources'.DIRECTORY_SEPARATOR.'assets';
 
         $componentPath = $basePath.'src'.DIRECTORY_SEPARATOR.'View'.DIRECTORY_SEPARATOR.'Components';
+
+        if (is_dir($componentPath)) {
+            // This will allow the usage of package components by their vendor namespace using the package-name:: syntax.
+            // ex: <x-core::calendar /> <x-core::alert /> <x-core::forms.input /> # for subdirectories.
+            Blade::componentNamespace('\\Modules\\'.$this->module().'\\View\\Components', $this->module(true));
+        }
 
         $this->loadViewsFrom($viewPath, $this->module(true));
 
@@ -455,8 +466,11 @@ abstract class BaseAppServiceProvider extends ServiceProvider
      */
     protected function bootTranslations(): void
     {
+        static $isV9Plus = null;
+        $isV9Plus ??= version_compare(app()->version(), '9.0.0') >= 0;
+
         // there is a change in structure for translations from v8 to v9.
-        if (version_compare(app()->version(), '9.0.0') >= 0) {
+        if ($isV9Plus) {
             $path = base_path($this->base.DIRECTORY_SEPARATOR.$this->module().DIRECTORY_SEPARATOR.'lang');
         } else {
             $path = base_path($this->base.DIRECTORY_SEPARATOR.$this->module().DIRECTORY_SEPARATOR.'resources'.DIRECTORY_SEPARATOR.'lang');
@@ -503,8 +517,11 @@ abstract class BaseAppServiceProvider extends ServiceProvider
     protected function bootSeeders(): void
     {
         if ($this->app->runningInConsole()) {
+            $seederPath = $this->modulePath('database/seeders/DatabaseSeeder.php');
+
+            if (! is_file($seederPath)) { return; }
             $this->publishes([
-                __DIR__.'/../../database/seeders/DatabaseSeeder.php' => database_path('seeders/'.$this->module().'ModuleSeeder.php'),
+                $seederPath => database_path('seeders/'.$this->module().'ModuleSeeder.php')
             ], 'seeders');
         }
     }
