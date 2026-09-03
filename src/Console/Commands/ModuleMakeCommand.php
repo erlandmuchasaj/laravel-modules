@@ -48,11 +48,9 @@ class ModuleMakeCommand extends BaseGeneratorCommand
     /**
      * Execute the console command.
      */
-    public function handle(): ?bool
+    public function handle(): int
     {
-        $this->generateModuleStructure();
-
-        return true;
+        return $this->generateModuleStructure();
     }
 
     /**
@@ -149,7 +147,7 @@ class ModuleMakeCommand extends BaseGeneratorCommand
 
         $class = str_replace($this->getNamespace($name).'\\', '', $name);
 
-        $filePath = $folder.DIRECTORY_SEPARATOR.$moduleName.DIRECTORY_SEPARATOR.'src'.DIRECTORY_SEPARATOR.'Providers'.DIRECTORY_SEPARATOR.$class.'.php';
+        $filePath = $this->laravel->basePath($folder.DIRECTORY_SEPARATOR.$moduleName.DIRECTORY_SEPARATOR.'src'.DIRECTORY_SEPARATOR.'Providers'.DIRECTORY_SEPARATOR.$class.'.php');
 
         return $this->files->put(
             $filePath,

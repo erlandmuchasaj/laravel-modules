@@ -3,6 +3,7 @@
 namespace ErlandMuchasaj\Modules\Support;
 
 use Illuminate\Support\Facades\Artisan;
+use RuntimeException;
 use Symfony\Component\Console\Output\ConsoleOutput;
 
 /**
@@ -95,14 +96,14 @@ class SeedOrchestrator
             }
 
             if (isset($visiting[$namespace])) {
-                throw new \RuntimeException("Circular dependency detected for seeder: {$namespace}");
+                throw new RuntimeException("Circular dependency detected for seeder: {$namespace}");
             }
 
             $visiting[$namespace] = true;
             if (isset($seederMap[$namespace])) {
                 foreach ($seederMap[$namespace]['dependencies'] as $dependency) {
                     if (!isset($seederMap[$dependency])) {
-                        throw new \RuntimeException("Missing dependency seeder: {$dependency} required by {$namespace}");
+                        throw new RuntimeException("Missing dependency seeder: {$dependency} required by {$namespace}");
                     }
 
                     $visit($dependency);
@@ -140,7 +141,7 @@ class SeedOrchestrator
         ]);
 
         if ($exitCode !== 0) {
-            throw new \RuntimeException("Failed to execute module seeder [{$namespace}] with exit code {$exitCode}.");
+            throw new RuntimeException("Failed to execute module seeder [{$namespace}] with exit code {$exitCode}.");
         }
 
         $runTime = round(microtime(true) - $startTime, 2);

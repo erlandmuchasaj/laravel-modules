@@ -69,7 +69,7 @@ class ComponentMakeCommand extends BaseGeneratorCommand
             $this->writeView();
         }
 
-        return true;
+        return null;
     }
 
     /**

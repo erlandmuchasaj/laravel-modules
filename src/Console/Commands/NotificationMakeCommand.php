@@ -59,7 +59,7 @@ class NotificationMakeCommand extends BaseGeneratorCommand
             $this->writeMarkdownTemplate();
         }
 
-        return true;
+        return null;
     }
 
     /**

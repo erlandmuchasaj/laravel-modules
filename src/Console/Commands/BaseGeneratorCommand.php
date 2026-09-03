@@ -22,7 +22,7 @@ abstract class BaseGeneratorCommand extends GeneratorCommand
      *
      * @throws FileNotFoundException
      */
-    public function handle(): ?bool
+    public function handle(): int|bool|null
     {
         // check if a module is already created and a file exists
         if (! $this->moduleAlreadyExists()) {
@@ -188,7 +188,7 @@ abstract class BaseGeneratorCommand extends GeneratorCommand
      */
     protected function getModulePath(string $moduleName, ?string $subPath = null): string
     {
-        $path = $this->getModuleFolder().DIRECTORY_SEPARATOR.$moduleName;
+        $path = $this->laravel->basePath($this->getModuleFolder().DIRECTORY_SEPARATOR.$moduleName);
         return $subPath ? $path.DIRECTORY_SEPARATOR.$subPath : $path;
     }
 

@@ -11,7 +11,7 @@ abstract class BaseRouteServiceProvider extends ServiceProvider
 {
     /**
      * The controller namespace for the module.
-     * 
+     *
      * The root namespace to assume when generating URLs to actions.
      * This is used by each module and should not overwrite the base service model
      * @readonly this was renamed from $namespaced => $moduleNamespace
@@ -41,7 +41,7 @@ abstract class BaseRouteServiceProvider extends ServiceProvider
 
     /**
      * Per-instance cache for file_exists results.
-     * Instance property (not static) so Octane workers see fresh state per boot.
+     * Instance property (not static) so Octane workers see a fresh state per boot.
      */
     private array $routeFileCache = [];
 
@@ -133,8 +133,8 @@ abstract class BaseRouteServiceProvider extends ServiceProvider
     }
 
     /**
-     * Check if route file exists with per-instance caching.
-     * Uses an instance property (not a static) so Octane/Swoole workers can
+     * Check if the route file exists with per-instance caching.
+     * Uses an instance property (not static) so Octane/Swoole workers can
      * get fresh results across requests when the provider is re-instantiated.
      */
     protected function routeFileExists(string $path): bool

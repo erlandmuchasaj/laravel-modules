@@ -46,6 +46,7 @@ class ExtractTranslationsCommand extends Command
         $this->info("Extracting translations for module: {$this->getModuleInput()}");
 
         $translationKeys = $this->findProjectTranslationsKeys();
+        $translationFiles = $this->getProjectTranslationFiles();
 
         if (empty($translationKeys)) {
             $this->warn('No translation keys found in the module.');
@@ -53,8 +54,6 @@ class ExtractTranslationsCommand extends Command
         }
 
         $this->info("Found ".count($translationKeys)." translation keys.");
-
-        $translationFiles = $this->getProjectTranslationFiles();
 
         if (empty($translationFiles)) {
             return self::SUCCESS;

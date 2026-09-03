@@ -25,7 +25,7 @@ class ModuleCacheManager
     protected int $ttl = 3600;
 
     /**
-     * Resolve the configured modules directory.
+     * Resolve the configured modules' directory.
      *
      * Supports both the current `modules.folder` key and the legacy
      * `modules.base` key for backwards compatibility.
@@ -164,7 +164,7 @@ class ModuleCacheManager
     }
 
     /**
-     * Clear cache for specific module.
+     * Clear cache for a specific module.
      */
     public function clearModule(string $module): void
     {
@@ -250,7 +250,7 @@ class ModuleCacheManager
     }
 
     /**
-     * Get cache key with prefix.
+     * Get a cache key with a prefix.
      */
     protected function getCacheKey(string $key): string
     {

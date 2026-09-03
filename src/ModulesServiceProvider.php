@@ -3,6 +3,7 @@
 namespace ErlandMuchasaj\Modules;
 
 use ErlandMuchasaj\Modules\Providers\ConsoleServiceProvider;
+use ErlandMuchasaj\Modules\Support\ModuleCacheManager;
 use ErlandMuchasaj\Modules\Support\SeedOrchestrator;
 use Illuminate\Console\Events\CommandFinished;
 use Illuminate\Support\Facades\Event;
@@ -48,7 +49,7 @@ class ModulesServiceProvider extends ServiceProvider
 
         // Bind 'modules' so the Module facade resolves correctly
         $this->app->singleton(static::$abstract, function ($app) {
-            return $app->make(\ErlandMuchasaj\Modules\Support\ModuleCacheManager::class);
+            return $app->make(ModuleCacheManager::class);
         });
 
         $this->app->register(ConsoleServiceProvider::class);
@@ -92,7 +93,7 @@ class ModulesServiceProvider extends ServiceProvider
         // Don't run if a specific class was provided to db:seed
         if ($event->command === 'db:seed' && method_exists($input, 'getOption')) {
             $seeder = $input->getOption('class');
-            // Accept both short form ("DatabaseSeeder") and fully-qualified form
+            // Accept both short form ("DatabaseSeeder") and fully qualified form
             $defaultSeeders = [
                 null,
                 '',

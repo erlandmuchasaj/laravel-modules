@@ -144,7 +144,7 @@ class MigrateMakeCommand extends BaseCommand implements PromptsForMissingInput
                 : $targetPath;
         }
 
-        return 'modules'.DIRECTORY_SEPARATOR.$this->getModuleInput().DIRECTORY_SEPARATOR.'database'.DIRECTORY_SEPARATOR.'migrations';
+        return $this->laravel->basePath('modules'.DIRECTORY_SEPARATOR.$this->getModuleInput().DIRECTORY_SEPARATOR.'database'.DIRECTORY_SEPARATOR.'migrations');
     }
 
     /**

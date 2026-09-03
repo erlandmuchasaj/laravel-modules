@@ -44,7 +44,7 @@ trait CanPublishConfiguration
     }
 
     /**
-     * Merge config of module to Laravel configuration files.
+     * Merge config of the module to Laravel configuration files.
      */
     protected function registerConfig(string $module, string $fileName): void
     {
@@ -55,7 +55,7 @@ trait CanPublishConfiguration
     }
 
     /**
-     * Get path of the give file name in the given module
+     * Get the path of the give file name in the given module
      */
     private function getModuleConfigFilePath(string $module, string $file): string
     {

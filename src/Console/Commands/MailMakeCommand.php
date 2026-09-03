@@ -60,7 +60,7 @@ class MailMakeCommand extends BaseGeneratorCommand
             $this->writeMarkdownTemplate();
         }
 
-        return true;
+        return null;
     }
 
     /**

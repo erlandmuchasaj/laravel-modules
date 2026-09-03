@@ -96,7 +96,7 @@ class ModelMakeCommand extends BaseGeneratorCommand
             $this->createPolicy();
         }
 
-        return true;
+        return null;
     }
 
     /**
