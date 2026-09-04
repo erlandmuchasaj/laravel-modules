@@ -42,19 +42,14 @@ class ModulesServiceProvider extends ServiceProvider
             static::$abstract
         );
 
-        // Register SeedOrchestrator as singleton
-        $this->app->singleton(SeedOrchestrator::class, function () {
-            return new SeedOrchestrator();
-        });
+        $this->app->singleton(SeedOrchestrator::class);
 
-
-        // Fixed — one canonical singleton, one alias
+        // One canonical singleton; the 'modules' alias is what the facade hits.
         $this->app->singleton(ModuleCacheManager::class);
         $this->app->alias(ModuleCacheManager::class, static::$abstract);
 
         $this->app->register(ConsoleServiceProvider::class);
     }
-
 
     /**
      * Set up seed orchestration to run after db:seed command.
