@@ -44,7 +44,6 @@ class ConsoleServiceProvider extends ServiceProvider
         Commands\ViewMakeCommand::class,
         Commands\ModuleMakeCommand::class,
         Commands\ModuleRemoveCommand::class,
-        Commands\ModuleUpgradeCommand::class,
         Commands\ModuleListCommand::class,
         Commands\ModuleSeedCommand::class,
         Commands\ModuleSeedCheckCommand::class,

@@ -21,6 +21,13 @@ class SeedOrchestrator
      */
     protected bool $hasRun = false;
 
+    protected ConsoleOutput $output;
+
+    public function __construct()
+    {
+        $this->output = new ConsoleOutput();
+    }
+
     /**
      * Register a seeder with priority and dependencies.
      *
@@ -130,9 +137,7 @@ class SeedOrchestrator
      */
     protected function executeSeed(string $namespace): void
     {
-        $output = new ConsoleOutput();
-
-        $output->writeln("<comment>Seeding:</comment> $namespace");
+        $this->output->writeln("<comment>Seeding:</comment> $namespace");
 
         $startTime = microtime(true);
         $exitCode = Artisan::call('db:seed', [
@@ -145,7 +150,7 @@ class SeedOrchestrator
         }
 
         $runTime = round(microtime(true) - $startTime, 2);
-        $output->writeln("<info>Seeded:</info> {$namespace} ({$runTime} seconds)");
+        $this->output->writeln("<info>Seeded:</info> {$namespace} ({$runTime} seconds)");
     }
 
     /**

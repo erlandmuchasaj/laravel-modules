@@ -3,7 +3,6 @@
 namespace ErlandMuchasaj\Modules\Console\Commands;
 
 use Throwable;
-use RuntimeException;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputOption;
@@ -46,11 +45,9 @@ class ModuleRemoveCommand extends BaseGeneratorCommand
     /**
      * Execute the console command.
      */
-    public function handle(): ?bool
+    public function handle(): int
     {
-        $this->deleteModule();
-
-        return true;
+        return $this->deleteModule();
     }
 
     /**
@@ -68,11 +65,16 @@ class ModuleRemoveCommand extends BaseGeneratorCommand
             return self::FAILURE;
         }
 
-        $path = $this->getModulePath($moduleName);
+        if (!$this->option('force') &&
+            !$this->components->confirm("Remove module [{$moduleName}] permanently? This cannot be undone.")
+        ) {
+            $this->components->info('Aborted.');
+            return self::SUCCESS;
+        }
+
 
         try {
-            // Delete module files
-            $this->info("Deleting module: $moduleName");
+            $path = $this->getModulePath($moduleName);
             $this->files->deleteDirectory($path);
             $this->components->info("Deleted module files at: $path");
         } catch (Throwable $e) {
@@ -80,30 +82,29 @@ class ModuleRemoveCommand extends BaseGeneratorCommand
             return self::FAILURE;
         }
 
-        try {
-            $this->components->info("Remove module from composer.json");
-            $command = sprintf(
-                'composer remove "%s" %s %s',
-                $this->getModulePackageName($moduleName),
-                $this->option('optimize') ? '-o' : '',
-                $this->option('quiet') ? '-q' : ''
-            );
-
-            passthru($command, $exitCode);
-
-            if ($exitCode === 0) {
-                $this->components->info('Module removed from composer.json successfully.');
-            } else {
-                throw new RuntimeException('Composer remove failed');
+        // ── Step 4: clear stale bootstrap cache so post-autoload-dump artisan boot doesn't hit the missing class ──
+        foreach (['services', 'packages'] as $cache) {
+            $cacheFile = $this->laravel->bootstrapPath("cache/{$cache}.php");
+            if ($this->files->exists($cacheFile)) {
+                $this->files->delete($cacheFile);
             }
+        }
 
-        } catch (Throwable $e) {
-            $this->components->error("Failed to update composer.json: " . $e->getMessage());
-            $this->components->warn('You may need to edit composer.json manually.');
+        $this->components->info("Remove module from composer.json");
+        $command = sprintf(
+            'composer remove "%s" %s %s',
+            $this->getModulePackageName($moduleName),
+            $this->option('optimize') ? '-o' : '',
+            $this->option('quiet') ? '-q' : ''
+        );
+        passthru($command, $exitCode);
+
+        if ($exitCode !== 0) {
+            $this->components->warn('Autoloader rebuild failed. Run `composer dump-autoload` manually.');
             return self::FAILURE;
         }
 
-        $this->components->info("Module [$moduleName] removed successfully.");
+        $this->components->info(sprintf('Module [%s] removed successfully.', $moduleName));
         return self::SUCCESS;
     }
 
