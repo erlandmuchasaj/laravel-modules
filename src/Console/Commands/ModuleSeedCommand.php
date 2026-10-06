@@ -26,7 +26,7 @@ class ModuleSeedCommand extends Command
 
     public function handle(): int
     {
-        $module = $this->argument('module');
+        $module = $this->getModuleInput();
         $namespace = config('modules.namespace', 'Modules');
         $class = "{$namespace}\\{$module}\\Database\\Seeders\\DatabaseSeeder";
 
@@ -43,4 +43,14 @@ class ModuleSeedCommand extends Command
 
         return self::SUCCESS;
     }
+
+
+    /**
+     * Get the desired class name from the input.
+     */
+    protected function getModuleInput(): string
+    {
+        return Str::of((string) $this->argument('module'))->trim()->studly()->toString();
+    }
+
 }

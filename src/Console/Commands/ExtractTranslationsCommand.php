@@ -245,12 +245,23 @@ class ExtractTranslationsCommand extends Command
     }
 
     /**
+     * get config base for module generation
+     * @return string
+     */
+    protected function getBase(): string
+    {
+        $folder = config('modules.folder') ?: config('modules.base', 'modules');
+
+        return trim((string) $folder, '/\\') ?: 'modules';
+    }
+
+    /**
      * Check if the module exists.
      */
     protected function moduleExists(): bool
     {
         $moduleName = $this->getModuleInput();
-        return is_dir(base_path('modules'.DIRECTORY_SEPARATOR.$moduleName));
+        return is_dir(base_path($this->getBase().DIRECTORY_SEPARATOR.$moduleName));
     }
 
     /**
@@ -259,7 +270,7 @@ class ExtractTranslationsCommand extends Command
     protected function getModulePath(string $subPath = ''): string
     {
         $moduleName = $this->getModuleInput();
-        $path = base_path('modules'.DIRECTORY_SEPARATOR.$moduleName);
+        $path = base_path($this->getBase().DIRECTORY_SEPARATOR.$moduleName);
 
         return $subPath ? $path.DIRECTORY_SEPARATOR.$subPath : $path;
     }

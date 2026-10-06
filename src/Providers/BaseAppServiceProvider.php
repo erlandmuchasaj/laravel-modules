@@ -371,7 +371,7 @@ abstract class BaseAppServiceProvider extends ServiceProvider
      */
     protected function bootMigrations(): void
     {
-        $path = base_path($this->base.DIRECTORY_SEPARATOR.$this->module().DIRECTORY_SEPARATOR.'database'.DIRECTORY_SEPARATOR.'migrations');
+        $path = base_path($this->getBase().DIRECTORY_SEPARATOR.$this->module().DIRECTORY_SEPARATOR.'database'.DIRECTORY_SEPARATOR.'migrations');
 
         if (!is_dir($path)) {
             return;
@@ -395,7 +395,7 @@ abstract class BaseAppServiceProvider extends ServiceProvider
     protected function bootViews(): void
     {
 
-        $basePath = base_path($this->base.DIRECTORY_SEPARATOR.$this->module().DIRECTORY_SEPARATOR);
+        $basePath = base_path($this->getBase().DIRECTORY_SEPARATOR.$this->module().DIRECTORY_SEPARATOR);
 
         $viewPath = $basePath.'resources'.DIRECTORY_SEPARATOR.'views';
 
@@ -414,7 +414,7 @@ abstract class BaseAppServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             // Publish views
             $this->publishes([
-                $viewPath => resource_path("views/vendor/$this->base/{$this->module(true)}"),
+                $viewPath => resource_path("views/vendor/$this->getBase()/{$this->module(true)}"),
             ], 'views');
 
             // Publish view components
@@ -447,9 +447,9 @@ abstract class BaseAppServiceProvider extends ServiceProvider
 
         // there is a change in structure for translations from v8 to v9.
         if ($isV9Plus) {
-            $path = base_path($this->base.DIRECTORY_SEPARATOR.$this->module().DIRECTORY_SEPARATOR.'lang');
+            $path = base_path($this->getBase().DIRECTORY_SEPARATOR.$this->module().DIRECTORY_SEPARATOR.'lang');
         } else {
-            $path = base_path($this->base.DIRECTORY_SEPARATOR.$this->module().DIRECTORY_SEPARATOR.'resources'.DIRECTORY_SEPARATOR.'lang');
+            $path = base_path($this->getBase().DIRECTORY_SEPARATOR.$this->module().DIRECTORY_SEPARATOR.'resources'.DIRECTORY_SEPARATOR.'lang');
         }
 
         if (!is_dir($path)) {
@@ -480,7 +480,7 @@ abstract class BaseAppServiceProvider extends ServiceProvider
         }
 
         $factoriesPath = base_path(
-            $this->base.DIRECTORY_SEPARATOR.$this->module().DIRECTORY_SEPARATOR.'database'.DIRECTORY_SEPARATOR.'factories'
+            $this->getBase().DIRECTORY_SEPARATOR.$this->module().DIRECTORY_SEPARATOR.'database'.DIRECTORY_SEPARATOR.'factories'
         );
 
         if (is_dir($factoriesPath)) {
@@ -520,7 +520,7 @@ abstract class BaseAppServiceProvider extends ServiceProvider
      */
     protected function modulePath(string $path = ''): string
     {
-        $basePath = base_path($this->base . '/' . $this->module());
+        $basePath = base_path($this->getBase() . '/' . $this->module());
 
         return $path ? $basePath . '/' . $path : $basePath;
     }

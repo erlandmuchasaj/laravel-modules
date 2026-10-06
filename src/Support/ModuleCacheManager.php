@@ -137,9 +137,11 @@ class ModuleCacheManager
             }
 
             return collect(File::allFiles($path))
-                ->map(function ($file) use ($path) {
-                    $relativePath = str_replace($path . '/', '', $file->getPathname());
-                    return str_replace(['/', '.blade.php', '.php'], ['.', '', ''], $relativePath);
+                ->map(function ($file) {
+                    // getRelativePathname() is cross-platform; normalise both separator
+                    // types to dots and strip .blade.php / .php extensions.
+                    $relative = str_replace('\\', '/', $file->getRelativePathname());
+                    return str_replace(['.blade.php', '.php', '/'], ['', '', '.'], $relative);
                 })
                 ->values()
                 ->toArray();

@@ -2,6 +2,7 @@
 
 namespace ErlandMuchasaj\Modules\Console\Commands;
 
+use RuntimeException;
 use Throwable;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Input\InputArgument;
@@ -91,6 +92,13 @@ class ModuleRemoveCommand extends BaseGeneratorCommand
         }
 
         $this->components->info("Remove module from composer.json");
+
+        try {
+            $this->removeFromComposerJson($moduleName);
+        } catch (Throwable $e) {
+            $this->components->warn('Could not update composer.json: ' . $e->getMessage());
+        }
+
         $command = sprintf(
             'composer remove "%s" %s %s',
             $this->getModulePackageName($moduleName),
@@ -106,6 +114,44 @@ class ModuleRemoveCommand extends BaseGeneratorCommand
 
         $this->components->info(sprintf('Module [%s] removed successfully.', $moduleName));
         return self::SUCCESS;
+    }
+
+    /**
+     * Remove the module's require entry from the root composer.json.
+     * The path repository (./modules/*) is shared across all modules so it is left intact.
+     *
+     * @throws RuntimeException
+     */
+    protected function removeFromComposerJson(string $moduleName): void
+    {
+        $composerPath = base_path('composer.json');
+
+        if (!$this->files->exists($composerPath)) {
+            throw new RuntimeException('composer.json not found');
+        }
+
+        $content = $this->files->get($composerPath);
+        $composer = json_decode($content, true);
+
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            throw new RuntimeException('Invalid composer.json: ' . json_last_error_msg());
+        }
+
+        $packageName = $this->getModulePackageName($moduleName);
+
+        if (!isset($composer['require'][$packageName])) {
+            return; // already absent, nothing to do
+        }
+
+        unset($composer['require'][$packageName]);
+
+        $json = json_encode($composer, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+
+        if ($json === false) {
+            throw new RuntimeException('Failed to encode composer.json');
+        }
+
+        $this->files->put($composerPath, $json . PHP_EOL);
     }
 
     /**

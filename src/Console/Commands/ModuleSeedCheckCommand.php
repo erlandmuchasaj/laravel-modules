@@ -40,6 +40,8 @@ class ModuleSeedCheckCommand extends Command
             return self::SUCCESS;
         }
 
+        $issues = [];
+
         // Check for circular dependencies
         try {
             $reflection = new \ReflectionClass($orchestrator);

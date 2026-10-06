@@ -43,7 +43,7 @@ trait CanPublishConfiguration
     {
         if (app()->runningInConsole()) {
             // Use forward slashes for cross-platform config path compatibility
-            $publishTarget = config_path(Str::lower($this->base.'/'.$module.'/'.$fileName).'.php');
+            $publishTarget = config_path(Str::lower($this->getBase().'/'.$module.'/'.$fileName).'.php');
             $this->publishes([
                 $this->getModuleConfigFilePath($module, $fileName) => $publishTarget,
             ], 'config');
@@ -57,7 +57,7 @@ trait CanPublishConfiguration
     {
         $this->mergeConfigFrom(
             $this->getModuleConfigFilePath($module, $fileName),
-            Str::lower("$this->base.$module.$fileName")
+            Str::lower($this->getBase().".$module.$fileName")
         );
     }
 
@@ -71,6 +71,13 @@ trait CanPublishConfiguration
 
     private function getModulePath(string $module): string
     {
-        return base_path($this->base.DIRECTORY_SEPARATOR.Str::studly($module));
+        return base_path($this->getBase().DIRECTORY_SEPARATOR.Str::studly($module));
+    }
+
+    protected function getBase(): string
+    {
+        $folder = config('modules.folder') ?: config('modules.base', 'modules');
+
+        return trim((string) $folder, '/\\') ?: 'modules';
     }
 }

@@ -74,7 +74,7 @@ class MigrateMakeCommand extends BaseCommand implements PromptsForMissingInput
 
         $moduleName = $this->getModuleInput();
 
-        if (! file_exists(base_path("modules/$moduleName"))) {
+        if (! file_exists(base_path($this->getBase().DIRECTORY_SEPARATOR.$moduleName))) {
             $this->error("Module $moduleName does not exists, You need to create a module first.");
 
             return;
@@ -144,7 +144,7 @@ class MigrateMakeCommand extends BaseCommand implements PromptsForMissingInput
                 : $targetPath;
         }
 
-        return $this->laravel->basePath('modules'.DIRECTORY_SEPARATOR.$this->getModuleInput().DIRECTORY_SEPARATOR.'database'.DIRECTORY_SEPARATOR.'migrations');
+        return $this->laravel->basePath($this->getBase().DIRECTORY_SEPARATOR.$this->getModuleInput().DIRECTORY_SEPARATOR.'database'.DIRECTORY_SEPARATOR.'migrations');
     }
 
     /**
@@ -153,6 +153,17 @@ class MigrateMakeCommand extends BaseCommand implements PromptsForMissingInput
     protected function getModuleInput(): string
     {
         return Str::of((string) $this->input->getArgument('module'))->trim()->studly();
+    }
+
+    /**
+     * get config base for module generation
+     * @return string
+     */
+    protected function getBase(): string
+    {
+        $folder = config('modules.folder') ?: config('modules.base', 'modules');
+
+        return trim((string) $folder, '/\\') ?: 'modules';
     }
 
     /**
