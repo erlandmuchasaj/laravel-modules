@@ -3,6 +3,7 @@
 namespace ErlandMuchasaj\Modules\Console\Commands;
 
 use Illuminate\Console\Command;
+use Illuminate\Support\Str;
 use Symfony\Component\Console\Attribute\AsCommand;
 
 #[AsCommand(name: 'module:seed')]
