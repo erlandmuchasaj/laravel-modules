@@ -2,3 +2,12 @@
 composer.lock
 .DS_Store
 .idea
+.claude
+
+.DS_Store
+.cache
+.composer-history
+.phpunit.cache
+
+.phpunit.result.cache
+composer.lock

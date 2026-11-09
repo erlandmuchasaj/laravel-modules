@@ -4,6 +4,7 @@ namespace ErlandMuchasaj\Modules\Console\Commands;
 
 use Exception;
 use Illuminate\Console\Command;
+use Illuminate\Console\ConfirmableTrait;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -12,6 +13,8 @@ use Symfony\Component\Console\Command\Command as CommandAlias;
 #[AsCommand(name: 'app:install')]
 class AppInstall extends Command
 {
+    use ConfirmableTrait;
+
     /**
      * The name and signature of the console command.
      *
@@ -41,6 +44,10 @@ class AppInstall extends Command
      */
     public function handle(): int
     {
+        if (! $this->confirmToProceed()) {
+            return CommandAlias::FAILURE;
+        }
+
         $this->checkForEnvFile();
 
         $this->warn('Step: Migrating all tables into database...');
@@ -56,7 +63,7 @@ class AppInstall extends Command
         $this->call('storage:link');
 
         $this->warn('Step: Dumping autoloader...');
-        passthru(PHP_BINARY.' '.base_path('vendor/bin/composer').' dump-autoload --no-interaction');
+        passthru('composer dump-autoload --no-interaction');
 
         $this->info('-----------------------------');
         $this->info("Now, run `php artisan serve` to start your application.");
@@ -118,6 +125,12 @@ class AppInstall extends Command
     public static function envUpdate(string $key, string $value): void
     {
         $path = base_path('.env');
+
+        // Strip line breaks (prevents injecting extra keys) and quote the value.
+        $value = str_replace(["", "
+"], '', $value);
+        $value = '"'.addcslashes($value, '"\$').'"';
+
         file_put_contents($path, str_replace(
             $key,
             $key.$value,

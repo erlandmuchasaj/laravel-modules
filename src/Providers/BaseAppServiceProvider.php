@@ -414,7 +414,7 @@ abstract class BaseAppServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             // Publish views
             $this->publishes([
-                $viewPath => resource_path("views/vendor/$this->getBase()/{$this->module(true)}"),
+                $viewPath => resource_path("views/vendor/{$this->getBase()}/{$this->module(true)}"),
             ], 'views');
 
             // Publish view components

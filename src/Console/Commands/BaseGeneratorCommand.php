@@ -223,7 +223,15 @@ abstract class BaseGeneratorCommand extends GeneratorCommand
      */
     protected function getModuleInput(): string
     {
-        return Str::of((string) $this->argument('module'))->trim()->studly()->toString();
+        $name = Str::of((string) $this->argument('module'))->trim()->studly()->toString();
+
+        // Reject separators and dot segments so the name can never escape the modules folder
+        // or be interpreted by a shell when it is forwarded to composer.
+        if (!preg_match('/^[A-Za-z0-9_]+$/', $name)) {
+            throw new \InvalidArgumentException('Module name may only contain letters, numbers and underscores.');
+        }
+
+        return $name;
     }
 
     /**

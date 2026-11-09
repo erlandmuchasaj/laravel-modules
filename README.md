@@ -5,6 +5,15 @@ If you like laravel, you will love **laravel modules** and feel just like home.
 It follows the same folder structure as a Laravel project, the only difference is instead of **app/**, you have **src/**,
 the rest is same.
 
+## Requirements
+
+| Package | Supported versions |
+|---------|--------------------|
+| PHP     | 8.1, 8.2, 8.3, 8.4, 8.5 |
+| Laravel | 10.x, 11.x, 12.x, 13.x |
+
+Laravel 8 and 9 are end-of-life and no longer supported (Laravel 13 requires PHP 8.3+).
+
 ## Installation
 
 You can install the package via composer:
