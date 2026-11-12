@@ -44,10 +44,7 @@ class ModuleSeedCheckCommand extends Command
 
         // Check for circular dependencies
         try {
-            $reflection = new \ReflectionClass($orchestrator);
-            $method = $reflection->getMethod('sortSeeders');
-            $method->setAccessible(true);
-            $sorted = $method->invoke($orchestrator, $seeders);
+            $orchestrator->sortSeeders($seeders);
 
             $this->info('✓ No circular dependencies detected');
         } catch (\RuntimeException $e) {

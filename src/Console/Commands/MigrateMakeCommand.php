@@ -152,7 +152,14 @@ class MigrateMakeCommand extends BaseCommand implements PromptsForMissingInput
      */
     protected function getModuleInput(): string
     {
-        return Str::of((string) $this->input->getArgument('module'))->trim()->studly();
+        $name = Str::of((string) $this->input->getArgument('module'))->trim()->studly()->toString();
+
+        // Reject separators and dot segments so the name can never escape the modules folder.
+        if (! preg_match('/^[A-Za-z0-9_]+$/', $name)) {
+            throw new \InvalidArgumentException('Module name may only contain letters, numbers and underscores.');
+        }
+
+        return $name;
     }
 
     /**

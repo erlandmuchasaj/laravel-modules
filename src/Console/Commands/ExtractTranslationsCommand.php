@@ -119,7 +119,7 @@ class ExtractTranslationsCommand extends Command
     private function getTranslationKeysFromDir(array &$keys, string $dirPath): void
     {
 
-        $files = $this->glob($dirPath.DIRECTORY_SEPARATOR."*.php", GLOB_BRACE);
+        $files = $this->glob($dirPath.DIRECTORY_SEPARATOR."*.php");
         $translationMethods = $this->getTranslationMethods(); // config
 
         foreach ($files as $file) {
@@ -171,7 +171,7 @@ class ExtractTranslationsCommand extends Command
             }
         }
 
-        $files = glob($path.DIRECTORY_SEPARATOR.'*.json', GLOB_BRACE);
+        $files = glob($path.DIRECTORY_SEPARATOR.'*.json');
 
         if (empty($files) && $this->option('create')) {
             // Create a default en.json file
@@ -241,7 +241,14 @@ class ExtractTranslationsCommand extends Command
      */
     protected function getModuleInput(): string
     {
-        return Str::of((string) $this->argument('module'))->trim()->studly()->toString();
+        $name = Str::of((string) $this->argument('module'))->trim()->studly()->toString();
+
+        // Reject separators and dot segments so the name can never escape the modules folder.
+        if (! preg_match('/^[A-Za-z0-9_]+$/', $name)) {
+            throw new InvalidArgumentException('Module name may only contain letters, numbers and underscores.');
+        }
+
+        return $name;
     }
 
     /**

@@ -20,7 +20,7 @@ trait CreatesMatchingTest
         }
 
         $moduleSrcPath = base_path(
-            'modules' . DIRECTORY_SEPARATOR . $this->getModuleInput() . DIRECTORY_SEPARATOR . 'src'
+            $this->getModuleFolder() . DIRECTORY_SEPARATOR . $this->getModuleInput() . DIRECTORY_SEPARATOR . 'src'
         );
         $name = Str::of($path)->after($moduleSrcPath)->beforeLast('.php')->append('Test')->replace('\\', '/');
 

@@ -75,7 +75,7 @@ class ComponentMakeCommand extends BaseGeneratorCommand
     /**
      * Write the view for the component.
      */
-    protected function writeView(callable $onSuccess = null): void
+    protected function writeView(?callable $onSuccess = null): void
     {
         $path = $this->viewPath(
             str_replace('.', '/', 'components.'.$this->getView()).'.blade.php'

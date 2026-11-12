@@ -66,7 +66,7 @@ class TestMakeCommand extends BaseGeneratorCommand
         $name = Str::replaceFirst($this->rootNamespace(), '', $name);
         $name = ltrim(str_replace('\\', DIRECTORY_SEPARATOR, $name), DIRECTORY_SEPARATOR);
 
-        $path = 'modules'.DIRECTORY_SEPARATOR.$this->getModuleInput().DIRECTORY_SEPARATOR.'tests'
+        $path = $this->getModuleFolder().DIRECTORY_SEPARATOR.$this->getModuleInput().DIRECTORY_SEPARATOR.'tests'
             .DIRECTORY_SEPARATOR.$name.'.php';
 
         return base_path($path);
@@ -93,7 +93,7 @@ class TestMakeCommand extends BaseGeneratorCommand
     {
         $moduleName = $this->getModuleInput();
 
-        return "Modules\\$moduleName\\Tests";
+        return $this->getModuleNamespace()."\\$moduleName\\Tests";
     }
 
     /**
@@ -129,8 +129,9 @@ class TestMakeCommand extends BaseGeneratorCommand
         match ($type) {
             'feature' => null,
             'unit' => $input->setOption('unit', true),
-            'pest feature' => $input->setOption('pest', true),
-            'pest unit' => tap($input)->setOption('pest', true)->setOption('unit', true),
+            // The prompt returns the choice key ("pest-feature"); the spaced form is kept for older prompts.
+            'pest-feature', 'pest feature' => $input->setOption('pest', true),
+            'pest-unit', 'pest unit' => tap($input)->setOption('pest', true)->setOption('unit', true),
             default => throw new UnhandledMatchError($type),
         };
     }

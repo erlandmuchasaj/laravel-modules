@@ -35,7 +35,6 @@ it('isSeedingCommand returns true for seeding commands and false for others', fu
     $provider = new ModulesServiceProvider(app());
 
     $ref = new ReflectionMethod($provider, 'isSeedingCommand');
-    $ref->setAccessible(true);
 
     expect($ref->invoke($provider, 'db:seed'))->toBeTrue()
         ->and($ref->invoke($provider, 'migrate:fresh'))->toBeTrue()

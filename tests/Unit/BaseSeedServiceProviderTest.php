@@ -33,7 +33,6 @@ it('does not register a seeder when namespace is empty', function () {
     $provider = makeSeedProvider(namespace: '');
 
     $ref = new ReflectionMethod($provider, 'registerSeeder');
-    $ref->setAccessible(true);
     $ref->invoke($provider);
 
     $orchestrator = app(SeedOrchestrator::class);
@@ -48,7 +47,6 @@ it('registers the seeder with the orchestrator when namespace is set', function 
     );
 
     $ref = new ReflectionMethod($provider, 'registerSeeder');
-    $ref->setAccessible(true);
     $ref->invoke($provider);
 
     $orchestrator = app(SeedOrchestrator::class);
@@ -66,7 +64,6 @@ it('forwards dependencies to the orchestrator', function () {
     );
 
     $ref = new ReflectionMethod($provider, 'registerSeeder');
-    $ref->setAccessible(true);
     $ref->invoke($provider);
 
     $orchestrator = app(SeedOrchestrator::class);

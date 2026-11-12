@@ -112,7 +112,7 @@ class FactoryMakeCommand extends BaseGeneratorCommand
     {
         $name = (string) Str::of($name)->replaceFirst($this->rootNamespace(), '')->finish('Factory');
 
-        $path = 'modules'.DIRECTORY_SEPARATOR.$this->getModuleInput().DIRECTORY_SEPARATOR.'database'
+        $path = $this->getModuleFolder().DIRECTORY_SEPARATOR.$this->getModuleInput().DIRECTORY_SEPARATOR.'database'
             .DIRECTORY_SEPARATOR.'factories'.DIRECTORY_SEPARATOR.str_replace('\\', '/', $name).'.php';
 
         return base_path($path);
@@ -133,7 +133,7 @@ class FactoryMakeCommand extends BaseGeneratorCommand
             return $modelName;
         }
 
-        $modelPath = base_path('modules'.DIRECTORY_SEPARATOR.$this->getModuleInput().DIRECTORY_SEPARATOR.'src'
+        $modelPath = base_path($this->getModuleFolder().DIRECTORY_SEPARATOR.$this->getModuleInput().DIRECTORY_SEPARATOR.'src'
             .DIRECTORY_SEPARATOR.'Models');
 
         if (is_dir($modelPath)) {

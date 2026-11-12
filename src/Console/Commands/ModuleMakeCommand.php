@@ -46,6 +46,15 @@ class ModuleMakeCommand extends BaseGeneratorCommand
     protected $type = 'Module';
 
     /**
+     * Top level keys of this package's own configuration file ("modules.*").
+     *
+     * @var array<int, string>
+     */
+    protected const RESERVED_CONFIG_KEYS = [
+        'namespace', 'folder', 'base', 'paths', 'seeds', 'discovery', 'cache', 'composer',
+    ];
+
+    /**
      * Execute the console command.
      */
     public function handle(): int
@@ -147,6 +156,14 @@ class ModuleMakeCommand extends BaseGeneratorCommand
 
         $class = str_replace($this->getNamespace($name).'\\', '', $name);
 
+        // The stubs carry the default root namespace inside PHP string literals;
+        // keep them in sync with a custom "modules.namespace".
+        $stub = str_replace(
+            'Modules\\\\DummyModuleName',
+            str_replace('\\', '\\\\', $this->getModuleNamespace()).'\\\\DummyModuleName',
+            $stub
+        );
+
         $filePath = $this->laravel->basePath($folder.DIRECTORY_SEPARATOR.$moduleName.DIRECTORY_SEPARATOR.'src'.DIRECTORY_SEPARATOR.'Providers'.DIRECTORY_SEPARATOR.$class.'.php');
 
         return $this->files->put(
@@ -163,6 +180,21 @@ class ModuleMakeCommand extends BaseGeneratorCommand
         $snakeModuleName = Str::kebab($moduleName);
 
         $content = $this->files->get($this->getStub().'/composer.stub');
+
+        // The package name must match the one required in the root composer.json (see requireModule()),
+        // and the PSR-4 roots must match the configured namespace. With the default configuration
+        // both replacements produce exactly what the stub already contains.
+        $content = str_replace(
+            '"name": "modules/SnakeModuleName"',
+            '"name": "'.Str::lower($this->getModulePackageName($moduleName)).'"',
+            $content
+        );
+
+        $content = str_replace(
+            'Modules\\\\ModuleName',
+            str_replace('\\', '\\\\', $this->getModuleNamespace()).'\\\\ModuleName',
+            $content
+        );
 
         $content = str_replace(['SnakeModuleName', '{{ class }}', '{{class}}'], $snakeModuleName, $content);
 
@@ -215,8 +247,8 @@ class ModuleMakeCommand extends BaseGeneratorCommand
             // );
 
             $command = sprintf(
-                'composer update "%s" --no-interaction %s %s',
-                $packageName,
+                'composer update %s --no-interaction %s %s',
+                escapeshellarg($packageName),
                 $this->option('optimize') ? '-o' : '',
                 $this->option('quiet') ? '-q' : ''
             );
@@ -554,6 +586,24 @@ class ModuleMakeCommand extends BaseGeneratorCommand
         if (preg_match('([^A-Za-z0-9_/\\\\])', $moduleName)) {
             $this->components->error('Module name contains invalid characters.');
             return false;
+        }
+
+        // The name becomes a PHP namespace segment, which can not start with a digit.
+        if (preg_match('/^[0-9]/', $moduleName)) {
+            $this->components->error('Module name can not start with a number.');
+            return false;
+        }
+
+        // Module configuration is merged under "<folder>.<module>". When the folder is "modules" a module
+        // named after one of this package's own config keys shares that key with the package configuration.
+        // This is only a warning so that existing workflows keep working.
+        if (Str::lower($this->getModuleFolder()) === 'modules'
+            && in_array(Str::lower($moduleName), self::RESERVED_CONFIG_KEYS, true)
+        ) {
+            $this->components->warn(sprintf(
+                'The module config key "modules.%s" is also used by the laravel-modules package configuration; the two will be merged.',
+                Str::lower($moduleName)
+            ));
         }
 
         return true;

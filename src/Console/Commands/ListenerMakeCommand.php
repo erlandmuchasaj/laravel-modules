@@ -55,7 +55,7 @@ class ListenerMakeCommand extends BaseGeneratorCommand
      */
     protected function buildClass($name): string
     {
-        $event = $this->option('event');
+        $event = (string) $this->option('event');
 
         if (! Str::startsWith($event, [
             $this->rootNamespace(),

@@ -173,6 +173,9 @@ abstract class BaseAppServiceProvider extends ServiceProvider
         // boot Blade directive and components
         $this->bootBladeDirective();
 
+        // boot Livewire components (only when Livewire is installed and the module ships components)
+        $this->bootLivewireComponents();
+
         // boot Services
         $this->bootServices();
     }
@@ -324,6 +327,79 @@ abstract class BaseAppServiceProvider extends ServiceProvider
     }
 
     /**
+     * Register the module's Livewire components under the module alias.
+     *
+     * This is a no-op unless Livewire is installed and the module ships
+     * "src/Livewire" classes or "resources/views/livewire" view-based components.
+     *
+     * Usage: <livewire:module_name::counter /> or @livewire('module_name::forms.create-post')
+     * Anything registered manually in bootServices() runs later and takes precedence.
+     */
+    protected function bootLivewireComponents(): void
+    {
+        if (! $this->app->bound('livewire')) {
+            return;
+        }
+
+        $classPath = $this->modulePath('src/Livewire');
+        $viewPath = $this->modulePath('resources/views/livewire');
+
+        $hasClasses = is_dir($classPath);
+        $hasViews = is_dir($viewPath);
+
+        if (! $hasClasses && ! $hasViews) {
+            return;
+        }
+
+        $livewire = $this->app->make('livewire');
+        $alias = $this->module(true);
+        $namespace = $this->moduleNamespace().'\\Livewire';
+
+        // Livewire 4: namespaces are first class citizens (class based, single-file and multi-file components).
+        if (method_exists($livewire, 'addNamespace')) {
+            $livewire->addNamespace(
+                $alias,
+                viewPath: $hasViews ? $viewPath : null,
+                classNamespace: $hasClasses ? $namespace : null,
+                classPath: $hasClasses ? $classPath : null,
+                classViewPath: $hasClasses ? $viewPath : null,
+            );
+
+            return;
+        }
+
+        // Livewire 3: resolve lazily, only when Livewire could not find the component by itself.
+        if (! $hasClasses || ! method_exists($livewire, 'resolveMissingComponent')) {
+            return;
+        }
+
+        $livewire->resolveMissingComponent(static function ($name) use ($alias, $namespace): ?string {
+            if (! is_string($name)) {
+                return null;
+            }
+
+            $toClass = static fn (string $dotted): string => implode('\\', array_map(
+                static fn (string $segment): string => Str::studly($segment),
+                explode('.', $dotted)
+            ));
+
+            if (str_starts_with($name, $alias.'::')) {
+                // "module_name::forms.create-post" => <Namespace>\Livewire\Forms\CreatePost
+                $class = $namespace.'\\'.$toClass(substr($name, strlen($alias) + 2));
+            } else {
+                // Name Livewire generated from the class itself, e.g. "modules.blog.livewire.counter".
+                $class = $toClass($name);
+
+                if (! str_starts_with($class, $namespace.'\\')) {
+                    return null;
+                }
+            }
+
+            return class_exists($class) && is_subclass_of($class, \Livewire\Component::class) ? $class : null;
+        });
+    }
+
+    /**
      * bootPolicies
      */
     protected function bootPolicies(): void
@@ -406,7 +482,7 @@ abstract class BaseAppServiceProvider extends ServiceProvider
         if (is_dir($componentPath)) {
             // This will allow the usage of package components by their vendor namespace using the package-name:: syntax.
             // ex: <x-core::calendar /> <x-core::alert /> <x-core::forms.input /> # for subdirectories.
-            Blade::componentNamespace('\\Modules\\'.$this->module().'\\View\\Components', $this->module(true));
+            Blade::componentNamespace('\\'.$this->moduleNamespace().'\\View\\Components', $this->module(true));
         }
 
         $this->loadViewsFrom($viewPath, $this->module(true));
@@ -442,15 +518,7 @@ abstract class BaseAppServiceProvider extends ServiceProvider
      */
     protected function bootTranslations(): void
     {
-        static $isV9Plus = null;
-        $isV9Plus ??= version_compare(app()->version(), '9.0.0') >= 0;
-
-        // there is a change in structure for translations from v8 to v9.
-        if ($isV9Plus) {
-            $path = base_path($this->getBase().DIRECTORY_SEPARATOR.$this->module().DIRECTORY_SEPARATOR.'lang');
-        } else {
-            $path = base_path($this->getBase().DIRECTORY_SEPARATOR.$this->module().DIRECTORY_SEPARATOR.'resources'.DIRECTORY_SEPARATOR.'lang');
-        }
+        $path = base_path($this->getBase().DIRECTORY_SEPARATOR.$this->module().DIRECTORY_SEPARATOR.'lang');
 
         if (!is_dir($path)) {
             return;
@@ -513,6 +581,30 @@ abstract class BaseAppServiceProvider extends ServiceProvider
         }
 
         return Str::studly($this->module); # ModuleName
+    }
+
+    /**
+     * Get the root PHP namespace of the module, e.g. "Modules\Blog".
+     *
+     * It is derived from the provider's own class name so that modules living under
+     * a custom root namespace keep working; "Modules\<Module>" is the fallback.
+     */
+    protected function moduleNamespace(): string
+    {
+        $module = $this->module();
+        $class = static::class;
+
+        if (! str_contains($class, '@anonymous')) {
+            if (($position = strpos($class, '\\'.$module.'\\')) !== false) {
+                return substr($class, 0, $position + strlen($module) + 1);
+            }
+
+            if (str_starts_with($class, $module.'\\')) {
+                return $module;
+            }
+        }
+
+        return 'Modules\\'.$module;
     }
 
     /**

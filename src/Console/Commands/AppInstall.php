@@ -93,7 +93,8 @@ class AppInstall extends Command
     public function createEnvFile(): void
     {
         try {
-            File::copy('.env.example', '.env');
+            // Resolve from the application root rather than the current working directory.
+            File::copy(base_path('.env.example'), base_path('.env'));
             Artisan::call('key:generate');
 
             $appName = $this->anticipate('What is your Application name?', ['modules'], 'modules');
@@ -127,8 +128,7 @@ class AppInstall extends Command
         $path = base_path('.env');
 
         // Strip line breaks (prevents injecting extra keys) and quote the value.
-        $value = str_replace(["", "
-"], '', $value);
+        $value = str_replace(["\r", "\n"], '', $value);
         $value = '"'.addcslashes($value, '"\$').'"';
 
         file_put_contents($path, str_replace(

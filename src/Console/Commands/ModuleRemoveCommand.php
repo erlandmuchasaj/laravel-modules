@@ -100,8 +100,8 @@ class ModuleRemoveCommand extends BaseGeneratorCommand
         }
 
         $command = sprintf(
-            'composer remove "%s" %s %s',
-            $this->getModulePackageName($moduleName),
+            'composer remove %s %s %s',
+            escapeshellarg($this->getModulePackageName($moduleName)),
             $this->option('optimize') ? '-o' : '',
             $this->option('quiet') ? '-q' : ''
         );

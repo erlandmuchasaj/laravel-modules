@@ -170,7 +170,11 @@ abstract class BaseGeneratorCommand extends GeneratorCommand
     {
         $config = $this->laravel['config'];
 
-        return $config->get('modules.folder', 'modules') ?: 'modules';
+        // Resolved exactly like the runtime providers do (see CanPublishConfiguration::getBase()),
+        // so generators always write where the application will later look for the module.
+        $folder = $config->get('modules.folder') ?: $config->get('modules.base', 'modules');
+
+        return trim((string) $folder, '/\\') ?: 'modules';
     }
 
     /**
@@ -180,7 +184,7 @@ abstract class BaseGeneratorCommand extends GeneratorCommand
     {
         $config = $this->laravel['config'];
 
-        return $config->get('modules.namespace', 'Modules') ?: 'Modules';
+        return trim((string) $config->get('modules.namespace', 'Modules'), '\\') ?: 'Modules';
     }
 
     /**
@@ -213,7 +217,14 @@ abstract class BaseGeneratorCommand extends GeneratorCommand
      */
     protected function getModulePackageName(string $moduleName): string
     {
-        $folder = $this->getModuleFolder();
+        $folder = str_replace('\\', '/', $this->getModuleFolder());
+
+        // Composer names are "vendor/package": a nested folder (e.g. "app/Modules")
+        // contributes only its last segment as the vendor.
+        if (str_contains($folder, '/')) {
+            $folder = Str::lower(basename($folder));
+        }
+
         $snakeModuleName = Str::kebab($moduleName);
         return "$folder/$snakeModuleName";
     }
@@ -241,7 +252,7 @@ abstract class BaseGeneratorCommand extends GeneratorCommand
     {
         $moduleName = $this->getModuleInput();
 
-        return "Modules\\$moduleName\\";
+        return $this->getModuleNamespace()."\\$moduleName\\";
     }
 
     /**

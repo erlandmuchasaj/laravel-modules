@@ -39,10 +39,7 @@ class ModuleSeedListCommand extends Command
         }
 
         // Sort seeders as they would be executed
-        $reflection = new \ReflectionClass($orchestrator);
-        $method = $reflection->getMethod('sortSeeders');
-        $method->setAccessible(true);
-        $sorted = $method->invoke($orchestrator, $seeders);
+        $sorted = $orchestrator->sortSeeders($seeders);
 
         if ($this->option('json')) {
             $this->line(json_encode($sorted, JSON_PRETTY_PRINT));
@@ -89,7 +86,9 @@ class ModuleSeedListCommand extends Command
      */
     protected function extractModuleName(string $namespace): string
     {
-        if (preg_match('/^Modules\\\\([^\\\\]+)/', $namespace, $matches)) {
+        $root = trim((string) config('modules.namespace', 'Modules'), '\\') ?: 'Modules';
+
+        if (preg_match('/^'.preg_quote($root, '/').'\\\\([^\\\\]+)/', ltrim($namespace, '\\'), $matches)) {
             return $matches[1];
         }
 

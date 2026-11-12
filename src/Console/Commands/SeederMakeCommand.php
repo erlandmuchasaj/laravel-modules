@@ -69,7 +69,7 @@ class SeederMakeCommand extends BaseGeneratorCommand
     {
         $name = str_replace('\\', '/', Str::replaceFirst($this->rootNamespace(), '', $name));
 
-        $path = 'modules'.DIRECTORY_SEPARATOR.$this->getModuleInput().DIRECTORY_SEPARATOR.'database'
+        $path = $this->getModuleFolder().DIRECTORY_SEPARATOR.$this->getModuleInput().DIRECTORY_SEPARATOR.'database'
             .DIRECTORY_SEPARATOR.'seeders'.DIRECTORY_SEPARATOR.$name.'.php';
 
         return base_path($path);

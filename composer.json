@@ -92,6 +92,10 @@
         "phpstan/phpstan": "^1.10|^2.0",
         "phpunit/phpunit": "^10.5|^11.5|^12.0"
     },
+    "suggest": {
+        "livewire/livewire": "Module Livewire components are registered automatically under the module alias (^3.0|^4.0).",
+        "filament/filament": "Discover module resources, pages and widgets with the bundled ModulesPlugin (^3.0|^4.0|^5.0)."
+    },
     "autoload-dev": {
         "psr-4": {
             "ErlandMuchasaj\\Modules\\Tests\\": "tests/"

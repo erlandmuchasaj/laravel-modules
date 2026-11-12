@@ -163,12 +163,12 @@ Adding new observer. Go to `./modules/ModuleName/Providers/AppServiceProvider` a
 `Model` and the corresponding `Observer` as follows:
 ```php
     /**
-     * The policy mappings for the application.
+     * The model observers of the module.
      * Announcement::class is the model <==
      * 
      * @var array<class-string, class-string>
      */
-    protected array $policies = [
+    protected array $observers = [
         Announcement::class => AnnouncementObserver::class,
     ];
 
@@ -227,6 +227,58 @@ Middleware. There are 3 types of middleware that you can add. Global, Grouped an
     ];
 
 ```
+
+## Livewire, Filament and Alpine.js
+
+All three are optional. Nothing is loaded, and nothing changes, unless the package is installed.
+
+### Livewire (3.x and 4.x)
+
+When Livewire is installed, components placed in `./modules/ModuleName/src/Livewire` are registered
+automatically under the module alias (the snake_case module name, the same one used for views and translations):
+
+```php
+// modules/Blog/src/Livewire/Counter.php            => Modules\Blog\Livewire\Counter
+// modules/Blog/src/Livewire/Forms/CreatePost.php   => Modules\Blog\Livewire\Forms\CreatePost
+```
+
+```blade
+<livewire:blog::counter />
+<livewire:blog::forms.create-post />
+@livewire('blog::counter')
+```
+
+Component views live in the module as usual, e.g. `return view('blog::livewire.counter');`.
+On Livewire 4, single-file and multi-file components in `./modules/ModuleName/resources/views/livewire`
+are registered under the same alias as well.
+
+Components you register yourself in `bootServices()` (e.g. `Livewire::component(...)`) keep working and take precedence.
+To opt a module out, override `bootLivewireComponents()` in its `AppServiceProvider` with an empty body.
+
+### Filament (3.x, 4.x and 5.x)
+
+Add the plugin to a panel to discover the resources, pages, widgets and clusters modules ship under
+`./modules/ModuleName/src/Filament/{Resources,Pages,Widgets,Clusters}`:
+
+```php
+use ErlandMuchasaj\Modules\Filament\ModulesPlugin;
+
+public function panel(Panel $panel): Panel
+{
+    return $panel
+        // ...
+        ->plugin(ModulesPlugin::make());
+        // ->plugin(ModulesPlugin::make()->only(['Blog', 'Shop']))
+        // ->plugin(ModulesPlugin::make()->except(['Legacy']))
+        // ->plugin(ModulesPlugin::make()->directory('Filament/Admin')) // one folder per panel
+}
+```
+
+### Alpine.js
+
+Alpine.js is a front-end library, so the package has nothing to register for it. Livewire already bundles Alpine:
+when a page uses Livewire, do not load a second copy of Alpine from a module's assets. Register module specific
+Alpine components inside the `alpine:init` event instead.
 
 
 ---

@@ -55,10 +55,15 @@ trait CanPublishConfiguration
      */
     protected function registerConfig(string $module, string $fileName): void
     {
-        $this->mergeConfigFrom(
-            $this->getModuleConfigFilePath($module, $fileName),
-            Str::lower($this->getBase().".$module.$fileName")
-        );
+        $path = $this->getModuleConfigFilePath($module, $fileName);
+
+        // Nothing is merged when the configuration is cached, and a module
+        // without this config file simply has nothing to merge.
+        if (app()->configurationIsCached() || ! is_file($path)) {
+            return;
+        }
+
+        $this->mergeConfigFrom($path, Str::lower($this->getBase().".$module.$fileName"));
     }
 
     /**
