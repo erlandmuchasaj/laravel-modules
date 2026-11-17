@@ -17,17 +17,6 @@ class MiddlewareMakeCommand extends BaseGeneratorCommand
     protected $name = 'module:make-middleware';
 
     /**
-     * The name of the console command.
-     *
-     * This name is used to identify the command during lazy loading.
-     *
-     * @var string|null
-     *
-     * @deprecated
-     */
-    protected static $defaultName = 'module:make-middleware';
-
-    /**
      * The console command description.
      *
      * @var string

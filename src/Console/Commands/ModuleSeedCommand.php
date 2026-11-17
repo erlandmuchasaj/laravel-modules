@@ -2,13 +2,16 @@
 
 namespace ErlandMuchasaj\Modules\Console\Commands;
 
+use ErlandMuchasaj\Modules\Support\ModulePaths;
+use ErlandMuchasaj\Modules\Traits\ResolvesModuleInput;
 use Illuminate\Console\Command;
-use Illuminate\Support\Str;
 use Symfony\Component\Console\Attribute\AsCommand;
 
 #[AsCommand(name: 'module:seed')]
 class ModuleSeedCommand extends Command
 {
+    use ResolvesModuleInput;
+
     /**
      * The name and signature of the console command.
      *
@@ -28,7 +31,7 @@ class ModuleSeedCommand extends Command
     public function handle(): int
     {
         $module = $this->getModuleInput();
-        $namespace = config('modules.namespace', 'Modules');
+        $namespace = ModulePaths::namespace();
         $class = "{$namespace}\\{$module}\\Database\\Seeders\\DatabaseSeeder";
 
         if (!class_exists($class)) {
@@ -44,14 +47,4 @@ class ModuleSeedCommand extends Command
 
         return self::SUCCESS;
     }
-
-
-    /**
-     * Get the desired class name from the input.
-     */
-    protected function getModuleInput(): string
-    {
-        return Str::of((string) $this->argument('module'))->trim()->studly()->toString();
-    }
-
 }

@@ -48,17 +48,11 @@ class ConsoleServiceProvider extends ServiceProvider
         Commands\ModuleSeedCommand::class,
         Commands\ModuleSeedCheckCommand::class,
         Commands\ModuleSeedListCommand::class,
-        Commands\ModuleSeedClearCommand::class,
         Commands\ModuleAnalyzeCommand::class,
         Commands\ModuleCacheCommand::class,
         Commands\ModuleCacheClearCommand::class,
         Commands\ModuleCacheStatsCommand::class,
     ];
-
-    /**
-     * Indicates if loading of the provider is deferred.
-     */
-    protected bool $defer = true;
 
     /**
      * Register the commands.
@@ -70,14 +64,6 @@ class ConsoleServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->commands($this->commands);
         }
-    }
-
-    /**
-     * @return array<int, class-string>
-     */
-    public function provides(): array
-    {
-        return $this->commands;
     }
 
     /**

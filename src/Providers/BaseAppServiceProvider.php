@@ -28,12 +28,6 @@ abstract class BaseAppServiceProvider extends ServiceProvider
     protected string $module;
 
     /**
-     * Indicates if loading of the provider is deferred.
-     * @var bool
-     */
-    protected bool $defer = false;
-
-    /**
      * Get the services provided by the provider.
      *
      * @example
@@ -126,23 +120,6 @@ abstract class BaseAppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // $this->app->booted(function () {
-        //      # do something after boot for example configure a command to run and register it in schedule runner
-        //     /** @var Schedule */
-        //     $schedule = $this->app->make(\Illuminate\Console\Scheduling\Schedule::class);
-        //     $schedule->command('modules:check')
-        //         ->everyMinute()
-        //         ->withoutOverlapping()
-        //         ->sendOutputTo(storage_path('logs/laravel-modules.log'), true)
-        //         ->when(config('modules.scheduling.enabled'));
-        // });
-
-        /**
-         * @todo we can also separate boot and register config on boot and register methods.
-         */
-        // $this->bootConfig($this->module(true), 'config');
-        // $this->registerConfig($this->module(true), 'config');
-
         // publish migrations
         $this->bootMigrations();
 
@@ -209,10 +186,7 @@ abstract class BaseAppServiceProvider extends ServiceProvider
      */
     protected function registerBindings(): void
     {
-        // $this->app->bind(
-        //     CoreRepositoryInterface::class,
-        //     CoreEloquentRepository::class
-        // );
+        // Override in the module provider to bind interfaces to implementations.
     }
 
     /**
@@ -220,16 +194,7 @@ abstract class BaseAppServiceProvider extends ServiceProvider
      */
     protected function registerFacades(): void
     {
-        // $loader = AliasLoader::getInstance();
-        // $loader->alias('core', CoreFacade::class);
-
-        // $this->app->singleton('core', function () {
-        //     return app()->make(Core::class);
-        // });
-
-        // $this->app->scoped('core', function () {
-        //     return app()->make(Core::class);
-        // });
+        // Override in the module provider to register facade accessors.
     }
 
     /**
@@ -297,14 +262,12 @@ abstract class BaseAppServiceProvider extends ServiceProvider
             // Register route middleware
             foreach ($this->routeMiddleware as $name => $class) {
                 $router->aliasMiddleware($name, $class);
-                // $this->app['router']->aliasMiddleware($name, $class);
             }
 
             // Register group middleware
             foreach ($this->middlewareGroups as $group => $middlewares) {
                 foreach ($middlewares as $middleware) {
                     $router->pushMiddlewareToGroup($group, $middleware);
-                    // $this->app['router']->pushMiddlewareToGroup($group, $middleware);
                 }
             }
         });
@@ -425,11 +388,6 @@ abstract class BaseAppServiceProvider extends ServiceProvider
         }
 
         foreach ($this->observers as $className => $observerName) {
-            // $classObj = app($className);
-            // if (! is_null($classObj)) {
-            //     $classObj::observe($observerName);
-            // }
-
             $className::observe($observerName);
         }
     }

@@ -16,17 +16,6 @@ class EventMakeCommand extends BaseGeneratorCommand
     protected $name = 'module:make-event';
 
     /**
-     * The name of the console command.
-     *
-     * This name is used to identify the command during lazy loading.
-     *
-     * @var string|null
-     *
-     * @deprecated
-     */
-    protected static $defaultName = 'module:make-event';
-
-    /**
      * The console command description.
      *
      * @var string

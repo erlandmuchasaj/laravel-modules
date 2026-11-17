@@ -21,17 +21,6 @@ class ModuleMakeCommand extends BaseGeneratorCommand
     protected $name = 'module:make';
 
     /**
-     * The name of the console command.
-     *
-     * This name is used to identify the command during lazy loading.
-     *
-     * @var string|null
-     *
-     * @deprecated
-     */
-    protected static $defaultName = 'module:make';
-
-    /**
      * The console command description.
      *
      * @var string
@@ -47,6 +36,9 @@ class ModuleMakeCommand extends BaseGeneratorCommand
 
     /**
      * Top level keys of this package's own configuration file ("modules.*").
+     *
+     * Includes keys that earlier versions shipped ("paths", "seeds", ...), since configs
+     * published back then may still define them.
      *
      * @var array<int, string>
      */
@@ -148,8 +140,6 @@ class ModuleMakeCommand extends BaseGeneratorCommand
      */
     protected function buildProviderClass(string $name, string $stubPath): int|bool
     {
-        $folder = $this->getModuleFolder();
-
         $stub = $this->files->get($stubPath);
 
         $moduleName = $this->getModuleInput();
@@ -164,7 +154,7 @@ class ModuleMakeCommand extends BaseGeneratorCommand
             $stub
         );
 
-        $filePath = $this->laravel->basePath($folder.DIRECTORY_SEPARATOR.$moduleName.DIRECTORY_SEPARATOR.'src'.DIRECTORY_SEPARATOR.'Providers'.DIRECTORY_SEPARATOR.$class.'.php');
+        $filePath = $this->getModulePath($moduleName, 'src'.DIRECTORY_SEPARATOR.'Providers'.DIRECTORY_SEPARATOR.$class.'.php');
 
         return $this->files->put(
             $filePath,
@@ -238,13 +228,6 @@ class ModuleMakeCommand extends BaseGeneratorCommand
 
             // Instead of full composer update, use composer dump-autoload
             $this->components->info("Installing module: $packageName");
-
-            // $command = sprintf(
-            //     'composer require  "%s:*" --no-interaction %s %s',
-            //     $packageName,
-            //     $this->option('optimize') ? '-o' : '',
-            //     $this->option('quiet') ? '-q' : ''
-            // );
 
             $command = sprintf(
                 'composer update %s --no-interaction %s %s',
@@ -431,7 +414,7 @@ class ModuleMakeCommand extends BaseGeneratorCommand
     {
         $namespace = $this->getModuleNamespace();
 
-        // Crate language directories based on Laravel version
+        // Create language directories
         $this->createLanguageStructure($moduleName);
 
         // Create config file
@@ -455,23 +438,15 @@ class ModuleMakeCommand extends BaseGeneratorCommand
 
     protected function createLanguageStructure(string $moduleName): void
     {
-        if (version_compare($this->laravel->version(), '9.0.0') >= 0) {
-            $this->makeDirectory($this->getModulePath($moduleName, 'lang/en'));
-            $this->files->put(
-                $this->getModulePath($moduleName, 'lang/en.json'),
-                '{}'
-            );
-            $this->files->put(
-                $this->getModulePath($moduleName, 'lang/en/messages.php'),
-                $this->getMessagesStub()
-            );
-        } else {
-            $this->makeDirectory($this->getModulePath($moduleName, 'resources/lang/en'));
-            $this->files->put(
-                $this->getModulePath($moduleName, 'resources/lang/en/messages.php'),
-                $this->getMessagesStub()
-            );
-        }
+        $this->makeDirectory($this->getModulePath($moduleName, 'lang/en'));
+        $this->files->put(
+            $this->getModulePath($moduleName, 'lang/en.json'),
+            '{}'
+        );
+        $this->files->put(
+            $this->getModulePath($moduleName, 'lang/en/messages.php'),
+            $this->getMessagesStub()
+        );
     }
 
     protected function createConfigFile(string $moduleName): void
@@ -535,7 +510,6 @@ class ModuleMakeCommand extends BaseGeneratorCommand
     {
         $providers = [
             'AppServiceProvider',
-            // 'BroadcastServiceProvider',
             'EventServiceProvider',
             'RouteServiceProvider',
             'SeedServiceProvider',
@@ -634,7 +608,6 @@ class ModuleMakeCommand extends BaseGeneratorCommand
             ['optimize', 'o', InputOption::VALUE_NONE, 'Optimize autoloader after creation'],
             ['quiet', 'q', InputOption::VALUE_NONE, 'Suppress composer output'],
             ['cleanup-on-error', null, InputOption::VALUE_NONE, 'Remove partially created module on error'],
-            ['force', 'f', InputOption::VALUE_NONE, 'Overwrite existing module'],
         ];
     }
 

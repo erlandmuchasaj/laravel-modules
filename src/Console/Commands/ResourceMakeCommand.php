@@ -18,17 +18,6 @@ class ResourceMakeCommand extends BaseGeneratorCommand
     protected $name = 'module:make-resource';
 
     /**
-     * The name of the console command.
-     *
-     * This name is used to identify the command during lazy loading.
-     *
-     * @var string|null
-     *
-     * @deprecated
-     */
-    protected static $defaultName = 'module:make-resource';
-
-    /**
      * The console command description.
      *
      * @var string

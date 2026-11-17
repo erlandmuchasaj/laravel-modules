@@ -2,6 +2,8 @@
 
 namespace ErlandMuchasaj\Modules\Console\Commands;
 
+use ErlandMuchasaj\Modules\Support\ModulePaths;
+use ErlandMuchasaj\Modules\Traits\ResolvesModuleInput;
 use Exception;
 use Illuminate\Contracts\Console\PromptsForMissingInput;
 use Illuminate\Database\Console\Migrations\BaseCommand;
@@ -12,6 +14,8 @@ use Illuminate\Support\Str;
 
 class MigrateMakeCommand extends BaseCommand implements PromptsForMissingInput
 {
+    use ResolvesModuleInput;
+
     /**
      * The console command signature.
      *
@@ -101,7 +105,6 @@ class MigrateMakeCommand extends BaseCommand implements PromptsForMissingInput
         // will be the new table name
         if (! $table) {
             $table = $name;
-            // $table = Str::plural($name);
 
             $create = true;
         }
@@ -148,29 +151,11 @@ class MigrateMakeCommand extends BaseCommand implements PromptsForMissingInput
     }
 
     /**
-     * Get the desired class name from the input.
-     */
-    protected function getModuleInput(): string
-    {
-        $name = Str::of((string) $this->input->getArgument('module'))->trim()->studly()->toString();
-
-        // Reject separators and dot segments so the name can never escape the modules folder.
-        if (! preg_match('/^[A-Za-z0-9_]+$/', $name)) {
-            throw new \InvalidArgumentException('Module name may only contain letters, numbers and underscores.');
-        }
-
-        return $name;
-    }
-
-    /**
-     * get config base for module generation
-     * @return string
+     * Get the modules folder.
      */
     protected function getBase(): string
     {
-        $folder = config('modules.folder') ?: config('modules.base', 'modules');
-
-        return trim((string) $folder, '/\\') ?: 'modules';
+        return ModulePaths::folder();
     }
 
     /**

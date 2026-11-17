@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\File;
 
 /**
  * Module Cache Manager
- * Handles caching of module configurations, routes, and other data to improve performance in production.
+ * Handles caching of module configurations, routes, migrations and views.
  */
 class ModuleCacheManager
 {
@@ -32,9 +32,7 @@ class ModuleCacheManager
      */
     public function modulesDirectory(): string
     {
-        $folder = config('modules.folder') ?: config('modules.base', 'modules');
-
-        return trim((string) $folder, '/\\') ?: 'modules';
+        return ModulePaths::folder();
     }
 
     /**

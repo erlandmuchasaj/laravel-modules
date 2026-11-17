@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace ErlandMuchasaj\Modules\Filament;
 
+use ErlandMuchasaj\Modules\Support\ModulePaths;
 use Filament\Contracts\Plugin;
 use Filament\Panel;
 use Illuminate\Support\Str;
@@ -128,10 +129,7 @@ class ModulesPlugin implements Plugin
      */
     protected function modules(): array
     {
-        $folder = config('modules.folder') ?: config('modules.base', 'modules');
-        $folder = trim((string) $folder, '/\\') ?: 'modules';
-
-        $directories = glob(base_path($folder).'/*', GLOB_ONLYDIR) ?: [];
+        $directories = glob(base_path(ModulePaths::folder()).'/*', GLOB_ONLYDIR) ?: [];
 
         $modules = [];
 
@@ -157,6 +155,6 @@ class ModulesPlugin implements Plugin
      */
     protected function rootNamespace(): string
     {
-        return trim((string) config('modules.namespace', 'Modules'), '\\') ?: 'Modules';
+        return ModulePaths::namespace();
     }
 }

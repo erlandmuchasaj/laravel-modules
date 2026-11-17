@@ -18,17 +18,6 @@ class FactoryMakeCommand extends BaseGeneratorCommand
     protected $name = 'module:make-factory';
 
     /**
-     * The name of the console command.
-     *
-     * This name is used to identify the command during lazy loading.
-     *
-     * @var string|null
-     *
-     * @deprecated
-     */
-    protected static $defaultName = 'module:make-factory';
-
-    /**
      * The console command description.
      *
      * @var string
@@ -59,33 +48,14 @@ class FactoryMakeCommand extends BaseGeneratorCommand
      */
     protected function buildClass($name): string
     {
-        $factory = class_basename(Str::ucfirst(str_replace('Factory', '', $name)));
+        $factory = $this->factoryClassBasename($name);
 
-        $namespaceModel = $this->option('model')
-                        ? $this->qualifyModel($this->option('model'))
-                        : $this->qualifyModel($this->guessModelName($name));
+        $namespaceModel = $this->modelClass($name);
 
         $model = class_basename($namespaceModel);
 
-        // Mirror the model's subdirectory in the factory namespace so Laravel's
-        // HasFactory convention resolves the factory without a newFactory() override.
-        //   Model:   Modules\Event\Models\Transaction\Transaction
-        //   Factory: Modules\Event\Database\Factories\Transaction\TransactionFactory
-        $baseFactoryNamespace = $this->getDefaultNamespace(trim($this->rootNamespace(), '\\'));
-
-        $modelsKey = $this->rootNamespace().'Models\\';
-        if (Str::startsWith($namespaceModel, $modelsKey)) {
-            $afterModels = Str::after($namespaceModel, $modelsKey); // e.g. "Transaction\Transaction"
-            $modelSubdir = Str::beforeLast($afterModels, '\\');     // e.g. "Transaction"
-            $namespace = $modelSubdir
-                ? $baseFactoryNamespace.'\\'.$modelSubdir
-                : $baseFactoryNamespace;
-        } else {
-            $namespace = $baseFactoryNamespace;
-        }
-
         $replace = [
-            '{{ factoryNamespace }}' => $namespace,
+            '{{ factoryNamespace }}' => $this->factoryNamespace($namespaceModel),
             'NamespacedDummyModel' => $namespaceModel,
             '{{ namespacedModel }}' => $namespaceModel,
             '{{namespacedModel}}' => $namespaceModel,
@@ -110,12 +80,74 @@ class FactoryMakeCommand extends BaseGeneratorCommand
      */
     protected function getPath($name): string
     {
-        $name = (string) Str::of($name)->replaceFirst($this->rootNamespace(), '')->finish('Factory');
+        // Derive the file location from the namespace the class is written with, so the
+        // file always matches PSR-4 ("Post" and "Post/PostFactory" both end up in
+        // database/factories/Post/PostFactory.php when the model is Models\Post\Post).
+        $subNamespace = Str::after(
+            $this->factoryNamespace($this->modelClass($name)),
+            $this->baseFactoryNamespace()
+        );
 
-        $path = $this->getModuleFolder().DIRECTORY_SEPARATOR.$this->getModuleInput().DIRECTORY_SEPARATOR.'database'
-            .DIRECTORY_SEPARATOR.'factories'.DIRECTORY_SEPARATOR.str_replace('\\', '/', $name).'.php';
+        $directory = trim(str_replace('\\', DIRECTORY_SEPARATOR, $subNamespace), DIRECTORY_SEPARATOR);
 
-        return base_path($path);
+        return $this->getModulePath(
+            $this->getModuleInput(),
+            'database'.DIRECTORY_SEPARATOR.'factories'.DIRECTORY_SEPARATOR
+                .($directory !== '' ? $directory.DIRECTORY_SEPARATOR : '')
+                .$this->factoryClassBasename($name).'Factory.php'
+        );
+    }
+
+    /**
+     * Get the factory class name without its "Factory" suffix (e.g. "Post").
+     */
+    protected function factoryClassBasename(string $name): string
+    {
+        return class_basename(Str::ucfirst(str_replace('Factory', '', $name)));
+    }
+
+    /**
+     * Get the fully qualified model class the factory is for.
+     */
+    protected function modelClass(string $name): string
+    {
+        return $this->option('model')
+            ? $this->qualifyModel($this->option('model'))
+            : $this->qualifyModel($this->guessModelName($name));
+    }
+
+    /**
+     * Get the module's base factory namespace (e.g. "Modules\Blog\Database\Factories").
+     */
+    protected function baseFactoryNamespace(): string
+    {
+        return $this->getDefaultNamespace(trim($this->rootNamespace(), '\\'));
+    }
+
+    /**
+     * Get the factory namespace, mirroring the model's subdirectory.
+     *
+     * Laravel's HasFactory convention only looks under the application's Database\Factories,
+     * so module models still point at their factory through a newFactory() override.
+     *   Model:   Modules\Event\Models\Transaction\Transaction
+     *   Factory: Modules\Event\Database\Factories\Transaction\TransactionFactory
+     */
+    protected function factoryNamespace(string $namespaceModel): string
+    {
+        $baseFactoryNamespace = $this->baseFactoryNamespace();
+        $modelsKey = $this->rootNamespace().'Models\\';
+
+        if (! Str::startsWith($namespaceModel, $modelsKey)) {
+            return $baseFactoryNamespace;
+        }
+
+        $afterModels = Str::after($namespaceModel, $modelsKey); // e.g. "Transaction\Transaction"
+
+        if (! Str::contains($afterModels, '\\')) {
+            return $baseFactoryNamespace;
+        }
+
+        return $baseFactoryNamespace.'\\'.Str::beforeLast($afterModels, '\\'); // e.g. "...\Transaction"
     }
 
     /**
@@ -133,10 +165,7 @@ class FactoryMakeCommand extends BaseGeneratorCommand
             return $modelName;
         }
 
-        $modelPath = base_path($this->getModuleFolder().DIRECTORY_SEPARATOR.$this->getModuleInput().DIRECTORY_SEPARATOR.'src'
-            .DIRECTORY_SEPARATOR.'Models');
-
-        if (is_dir($modelPath)) {
+        if (is_dir($this->getModulePath($this->getModuleInput(), 'src'.DIRECTORY_SEPARATOR.'Models'))) {
             return $this->qualifyModel($name);
         }
 

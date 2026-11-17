@@ -2,6 +2,8 @@
 
 namespace ErlandMuchasaj\Modules\Console\Commands;
 
+use ErlandMuchasaj\Modules\Support\ModulePaths;
+use ErlandMuchasaj\Modules\Traits\ResolvesModuleInput;
 use Illuminate\Console\GeneratorCommand;
 use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use Illuminate\Support\Str;
@@ -10,11 +12,7 @@ use Symfony\Component\Finder\Finder;
 
 abstract class BaseGeneratorCommand extends GeneratorCommand
 {
-    /**
-     * $this->laravel->basePath(): c:\wamp\www\starter
-     * app()->basePath()
-     * base_path()
-     */
+    use ResolvesModuleInput;
 
     /**
      * Execute the console command.
@@ -45,12 +43,10 @@ abstract class BaseGeneratorCommand extends GeneratorCommand
     {
         $name = Str::replaceFirst($this->rootNamespace(), '', $name);
 
-        $moduleName = $this->getModuleInput();
-
-        $path = $this->getModuleFolder().DIRECTORY_SEPARATOR.$moduleName.DIRECTORY_SEPARATOR.'src'.DIRECTORY_SEPARATOR.
-            str_replace('\\', DIRECTORY_SEPARATOR, $name).'.php';
-
-        return  base_path($path);
+        return $this->getModulePath(
+            $this->getModuleInput(),
+            'src'.DIRECTORY_SEPARATOR.str_replace('\\', DIRECTORY_SEPARATOR, $name).'.php'
+        );
     }
 
     /**
@@ -60,9 +56,7 @@ abstract class BaseGeneratorCommand extends GeneratorCommand
      */
     protected function viewPath($path = ''): string
     {
-        $moduleName = $this->getModuleInput();
-
-        $views = base_path($this->getModuleFolder().DIRECTORY_SEPARATOR.$moduleName.DIRECTORY_SEPARATOR.'resources'.DIRECTORY_SEPARATOR.'views');
+        $views = $this->getModulePath($this->getModuleInput(), 'resources'.DIRECTORY_SEPARATOR.'views');
 
         return $views.($path ? DIRECTORY_SEPARATOR.$path : $path);
     }
@@ -115,26 +109,13 @@ abstract class BaseGeneratorCommand extends GeneratorCommand
      */
     protected function possibleModels(): array
     {
-        $modelPath = base_path($this->getModuleFolder().DIRECTORY_SEPARATOR.$this->getModuleInput().DIRECTORY_SEPARATOR.'src'
-            .DIRECTORY_SEPARATOR.'Models');
+        $modelPath = $this->getModulePath($this->getModuleInput(), 'src'.DIRECTORY_SEPARATOR.'Models');
 
         if (! is_dir($modelPath)) {
             $modelPath = is_dir(app_path('Models')) ? app_path('Models') : app_path();
         }
 
         return collect(Finder::create()->files()->depth(['>= 0', '< 2'])->in($modelPath))
-            // ->map(function ($file) {
-            //     $tokens = token_get_all(file_get_contents($file->getRealPath()));
-            //     $isTrait = false;
-            //
-            //     foreach ($tokens as $token) {
-            //         if (is_array($token) && $token[0] === T_TRAIT) {
-            //             $isTrait = true;
-            //             break;
-            //         }
-            //     }
-            //     return $isTrait ? null : $file->getBasename('.php');
-            // })
             ->map(fn ($file) => $file->getBasename('.php'))
             ->filter()
             ->sort()
@@ -150,8 +131,7 @@ abstract class BaseGeneratorCommand extends GeneratorCommand
      */
     protected function possibleEvents(): array
     {
-        $eventPath = base_path($this->getModuleFolder().DIRECTORY_SEPARATOR.$this->getModuleInput().DIRECTORY_SEPARATOR.'src'
-            .DIRECTORY_SEPARATOR.'Events');
+        $eventPath = $this->getModulePath($this->getModuleInput(), 'src'.DIRECTORY_SEPARATOR.'Events');
 
         if (! is_dir($eventPath)) {
             return [];
@@ -168,13 +148,7 @@ abstract class BaseGeneratorCommand extends GeneratorCommand
      */
     protected function getModuleFolder(): string
     {
-        $config = $this->laravel['config'];
-
-        // Resolved exactly like the runtime providers do (see CanPublishConfiguration::getBase()),
-        // so generators always write where the application will later look for the module.
-        $folder = $config->get('modules.folder') ?: $config->get('modules.base', 'modules');
-
-        return trim((string) $folder, '/\\') ?: 'modules';
+        return ModulePaths::folder();
     }
 
     /**
@@ -182,9 +156,7 @@ abstract class BaseGeneratorCommand extends GeneratorCommand
      */
     protected function getModuleNamespace(): string
     {
-        $config = $this->laravel['config'];
-
-        return trim((string) $config->get('modules.namespace', 'Modules'), '\\') ?: 'Modules';
+        return ModulePaths::namespace();
     }
 
     /**
@@ -230,22 +202,6 @@ abstract class BaseGeneratorCommand extends GeneratorCommand
     }
 
     /**
-     * Get the desired class name from the input.
-     */
-    protected function getModuleInput(): string
-    {
-        $name = Str::of((string) $this->argument('module'))->trim()->studly()->toString();
-
-        // Reject separators and dot segments so the name can never escape the modules folder
-        // or be interpreted by a shell when it is forwarded to composer.
-        if (!preg_match('/^[A-Za-z0-9_]+$/', $name)) {
-            throw new \InvalidArgumentException('Module name may only contain letters, numbers and underscores.');
-        }
-
-        return $name;
-    }
-
-    /**
      * Get the root namespace for the class.
      */
     protected function rootNamespace(): string
@@ -262,12 +218,7 @@ abstract class BaseGeneratorCommand extends GeneratorCommand
      */
     private function moduleAlreadyExists(): bool
     {
-        // Next, We will check to see if the Module folder already exists.
-        // If it doesn't, we don't want to create other related data.
-        // So, we will bail out and the code is untouched.
-        $moduleName = $this->getModuleInput();
-
-        return $this->moduleExists($moduleName);
+        return $this->moduleExists($this->getModuleInput());
     }
 
 
@@ -289,9 +240,7 @@ abstract class BaseGeneratorCommand extends GeneratorCommand
             return $model;
         }
 
-        $modelPath = base_path($this->getModuleFolder().DIRECTORY_SEPARATOR.$this->getModuleInput()
-            .DIRECTORY_SEPARATOR.'src'
-            .DIRECTORY_SEPARATOR.'Models');
+        $modelPath = $this->getModulePath($this->getModuleInput(), 'src'.DIRECTORY_SEPARATOR.'Models');
 
         if (is_dir($modelPath)) {
             // Module models follow the convention Models\{Name}\{Name} (each model in its own subdirectory).

@@ -19,17 +19,6 @@ class ModuleRemoveCommand extends BaseGeneratorCommand
     protected $name = 'module:remove';
 
     /**
-     * The name of the console command.
-     *
-     * This name is used to identify the command during lazy loading.
-     *
-     * @var string|null
-     *
-     * @deprecated
-     */
-    protected static $defaultName = 'module:remove';
-
-    /**
      * The console command description.
      *
      * @var string

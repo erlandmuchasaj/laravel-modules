@@ -22,17 +22,6 @@ class ModelMakeCommand extends BaseGeneratorCommand
     protected $name = 'module:make-model';
 
     /**
-     * The name of the console command.
-     *
-     * This name is used to identify the command during lazy loading.
-     *
-     * @var string|null
-     *
-     * @deprecated
-     */
-    protected static $defaultName = 'module:make-model';
-
-    /**
      * The console command description.
      *
      * @var string
@@ -100,23 +89,80 @@ class ModelMakeCommand extends BaseGeneratorCommand
     }
 
     /**
+     * Build the class with the given name.
+     *
+     * With --factory the model also gets a newFactory() override. Laravel's HasFactory
+     * convention only looks under the application's Database\Factories namespace, so
+     * without it Model::factory() would not find the module factory.
+     *
+     * @param  string  $name
+     *
+     * @throws FileNotFoundException
+     */
+    protected function buildClass($name): string
+    {
+        $class = parent::buildClass($name);
+
+        if (! $this->option('factory') || ! str_contains($class, 'HasFactory')) {
+            return $class;
+        }
+
+        $factoryClass = $this->factoryClass();
+        $factory = class_basename($factoryClass);
+
+        // Import the factory after the last top-level use statement.
+        $class = preg_replace('/^(use [^;\n]+;)(?![\s\S]*^use [^;\n]+;[\s\S]*^class )/m', "$1\nuse {$factoryClass};", $class, 1) ?? $class;
+
+        $method = <<<PHP
+
+    /**
+     * Create a new factory instance for the model.
+     */
+    protected static function newFactory(): {$factory}
+    {
+        return {$factory}::new();
+    }
+
+PHP;
+
+        $position = strrpos($class, '}');
+
+        return $position === false ? $class : substr_replace($class, $method, $position, 0);
+    }
+
+    /**
+     * Get the fully qualified factory class generated for the model.
+     *
+     *   Modules\Event\Models\Transaction\Transaction
+     *     → Modules\Event\Database\Factories\Transaction\TransactionFactory
+     */
+    protected function factoryClass(): string
+    {
+        return $this->rootNamespace().'Database\\Factories\\'.$this->getNameInput().'\\'.$this->factoryBasename().'Factory';
+    }
+
+    /**
+     * Get the factory name without its "Factory" suffix (e.g. "Transaction").
+     */
+    protected function factoryBasename(): string
+    {
+        return Str::studly(class_basename($this->argument('name')));
+    }
+
+    /**
      * Create a model factory for the model.
      *
-     * The factory is placed in a subdirectory matching the model's subdirectory so
-     * Laravel's HasFactory convention resolves it automatically:
+     * The factory is placed in a subdirectory matching the model's subdirectory, and the
+     * model points at it through the newFactory() override added by buildClass():
      *   Modules\Event\Models\Transaction\Transaction
      *     → Modules\Event\Database\Factories\Transaction\TransactionFactory
      */
     protected function createFactory(): void
     {
-        $modelName = $this->getNameInput();  // e.g. "Transaction"
-        $factory   = Str::studly(class_basename($this->argument('name'))); // e.g. "Transaction"
-
         $this->call('module:make-factory', [
             'module' => $this->getModuleInput(),
-            // Pass as subdirectory path so factory lives alongside the model:
             // database/factories/Transaction/TransactionFactory.php
-            'name'   => "{$modelName}\\{$factory}Factory",
+            'name' => $this->getNameInput().'\\'.$this->factoryBasename().'Factory',
             '--model' => $this->qualifyClass($this->getNameInput()),
         ]);
     }

@@ -9,20 +9,6 @@ beforeEach(function () {
 });
 
 // ──────────────────────────────────────────────
-// module:seed-clear
-// ──────────────────────────────────────────────
-
-it('module:seed-clear resets the orchestrator seeder list', function () {
-    $orchestrator = app(SeedOrchestrator::class);
-    $orchestrator->register('SomeSeeder', priority: 100);
-
-    $this->artisan('module:seed-clear')
-        ->assertExitCode(0);
-
-    expect($orchestrator->getSeeders())->toBe([]);
-});
-
-// ──────────────────────────────────────────────
 // module:seed-check
 // ──────────────────────────────────────────────
 

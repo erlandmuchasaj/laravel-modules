@@ -2,6 +2,7 @@
 
 namespace ErlandMuchasaj\Modules\Console\Commands;
 
+use ErlandMuchasaj\Modules\Support\ModulePaths;
 use ErlandMuchasaj\Modules\Support\SeedOrchestrator;
 use Illuminate\Console\Command;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -86,7 +87,7 @@ class ModuleSeedListCommand extends Command
      */
     protected function extractModuleName(string $namespace): string
     {
-        $root = trim((string) config('modules.namespace', 'Modules'), '\\') ?: 'Modules';
+        $root = ModulePaths::namespace();
 
         if (preg_match('/^'.preg_quote($root, '/').'\\\\([^\\\\]+)/', ltrim($namespace, '\\'), $matches)) {
             return $matches[1];

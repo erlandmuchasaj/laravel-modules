@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace ErlandMuchasaj\Modules\Traits;
 
+use ErlandMuchasaj\Modules\Support\ModulePaths;
 use Illuminate\Support\Str;
 
 /**
@@ -10,19 +11,6 @@ use Illuminate\Support\Str;
  */
 trait CanPublishConfiguration
 {
-    /**
-     * The root namespace to assume when generating URLs to actions.
-     * @var string
-     */
-    protected string $base = 'modules';
-
-    /**
-     * For php 8.5 ad up.
-     */
-    // protected string $base {
-    //     get => config('modules.folder', 'modules');
-    // }
-
     /**
      * Publish the given configuration file name (without extension) and the given module.
      * Publishing (vendor:publish) is skipped in the testing environment, but config merging
@@ -81,8 +69,6 @@ trait CanPublishConfiguration
 
     protected function getBase(): string
     {
-        $folder = config('modules.folder') ?: config('modules.base', 'modules');
-
-        return trim((string) $folder, '/\\') ?: 'modules';
+        return ModulePaths::folder();
     }
 }

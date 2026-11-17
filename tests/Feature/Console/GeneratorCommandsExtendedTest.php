@@ -107,14 +107,55 @@ it('module:make-exception produces a file at the correct path with the correct n
 // module:make-factory
 // ──────────────────────────────────────────────
 
-it('module:make-factory appends Factory suffix and places the file under database/factories', function () {
+it('module:make-factory appends Factory suffix and mirrors the guessed model subdirectory', function () {
     $this->artisan('module:make-factory', ['module' => $this->moduleName, 'name' => 'Article'])
         ->assertExitCode(0);
 
-    $file = $this->modulePath . '/database/factories/ArticleFactory.php';
+    // "Article" resolves to Models\Article\Article, so path and namespace both carry "Article".
+    $file = $this->modulePath . '/database/factories/Article/ArticleFactory.php';
 
     expect(file_exists($file))->toBeTrue()
-        ->and(file_get_contents($file))->toContain("namespace Modules\\{$this->moduleName}\\Database\\Factories");
+        ->and(file_get_contents($file))->toContain("namespace Modules\\{$this->moduleName}\\Database\\Factories\\Article;")
+        ->and(file_get_contents($file))->toContain('class ArticleFactory');
+});
+
+it('module:make-factory writes the file where its namespace says when the model has a subdirectory', function () {
+    $this->artisan('module:make-factory', [
+        'module' => $this->moduleName,
+        'name' => 'Post',
+        '--model' => "Modules\\{$this->moduleName}\\Models\\Post\\Post",
+    ])->assertExitCode(0);
+
+    $file = $this->modulePath . '/database/factories/Post/PostFactory.php';
+
+    expect(file_exists($file))->toBeTrue()
+        ->and(file_exists($this->modulePath . '/database/factories/PostFactory.php'))->toBeFalse()
+        ->and(file_get_contents($file))->toContain("namespace Modules\\{$this->moduleName}\\Database\\Factories\\Post;")
+        ->and(file_get_contents($file))->toContain('class PostFactory');
+});
+
+it('module:make-model --factory links the model to its factory with newFactory()', function () {
+    $this->artisan('module:make-model', ['module' => $this->moduleName, 'name' => 'Comment', '--factory' => true])
+        ->assertExitCode(0);
+
+    $model = file_get_contents($this->modulePath . '/src/Models/Comment/Comment.php');
+    $factoryClass = "Modules\\{$this->moduleName}\\Database\\Factories\\Comment\\CommentFactory";
+
+    expect($model)->toContain("use {$factoryClass};")
+        ->and($model)->toContain('protected static function newFactory(): CommentFactory')
+        ->and($model)->toContain('return CommentFactory::new();')
+        ->and(file_exists($this->modulePath . '/database/factories/Comment/CommentFactory.php'))->toBeTrue();
+
+    // The generated model must stay valid PHP.
+    exec('php -l ' . escapeshellarg($this->modulePath . '/src/Models/Comment/Comment.php'), $output, $code);
+    expect($code)->toBe(0);
+});
+
+it('module:make-model without --factory adds no newFactory()', function () {
+    $this->artisan('module:make-model', ['module' => $this->moduleName, 'name' => 'Tag'])
+        ->assertExitCode(0);
+
+    expect(file_get_contents($this->modulePath . '/src/Models/Tag/Tag.php'))->not->toContain('newFactory');
 });
 
 // ──────────────────────────────────────────────

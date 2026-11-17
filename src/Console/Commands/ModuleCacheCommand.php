@@ -21,7 +21,7 @@ class ModuleCacheCommand extends Command
      *
      * @var string
      */
-    protected $description = 'Cache module configurations, routes, and views for production';
+    protected $description = 'Cache module configurations, routes, and views';
 
     public function handle(ModuleCacheManager $cache): int
     {
@@ -53,7 +53,7 @@ class ModuleCacheCommand extends Command
         );
 
         $this->newLine();
-        $this->comment('Tip: Run this command after deploying to production for optimal performance.');
+        $this->comment('Tip: Run this command after each deploy to warm the module cache.');
 
         return self::SUCCESS;
     }

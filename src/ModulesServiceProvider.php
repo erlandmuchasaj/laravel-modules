@@ -86,11 +86,10 @@ class ModulesServiceProvider extends ServiceProvider
         $input = $event->input;
 
         // Don't run if a specific class was provided to db:seed
-        if ($event->command === 'db:seed' && method_exists($input, 'getOption')) {
+        if ($event->command === 'db:seed') {
             $seeder = $input->getOption('class');
             // Accept both short form ("DatabaseSeeder") and fully qualified form
             $defaultSeeders = [
-                null,
                 '',
                 'Database\\Seeders\\DatabaseSeeder',
                 'DatabaseSeeder',
@@ -102,10 +101,6 @@ class ModulesServiceProvider extends ServiceProvider
 
         // For migrate commands, only the run if --seed flag was provided
         if (in_array($event->command, ['migrate:fresh', 'migrate:refresh'], true)) {
-            if (!method_exists($input, 'getOption')) {
-                return false;
-            }
-
             // Check if --seed flag is present
             if (!$input->getOption('seed')) {
                 return false;
@@ -136,16 +131,5 @@ class ModulesServiceProvider extends ServiceProvider
         ];
 
         return in_array($command, $seedingCommands, true);
-    }
-
-
-    /**
-     * Get the services provided by the provider.
-     *
-     * @return array<int, string>
-     */
-    public function provides(): array
-    {
-        return ['modules'];
     }
 }

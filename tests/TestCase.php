@@ -17,8 +17,6 @@ abstract class TestCase extends OrchestraTestCase
     protected function defineEnvironment($app): void
     {
         $app['config']->set('modules.folder', 'modules');
-        $app['config']->set('modules.discovery.cache', false);
-        $app['config']->set('modules.seeds.enabled', true);
     }
 
     protected function getEnvironmentSetUp($app): void

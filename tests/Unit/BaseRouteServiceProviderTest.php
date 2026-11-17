@@ -103,3 +103,25 @@ it('map registers web routes when the web route file exists', function () {
 
     unlink($webFile);
 });
+
+// ──────────────────────────────────────────────
+// channels — loaded in boot(), independent of the route cache
+// ──────────────────────────────────────────────
+
+it('loads broadcast channels in boot() and not in map(), so route:cache does not drop them', function () {
+    $channelsFile = sys_get_temp_dir() . '/channels_' . uniqid() . '.php';
+    file_put_contents($channelsFile, "<?php\n\$GLOBALS['module_channels_loaded'] = (\$GLOBALS['module_channels_loaded'] ?? 0) + 1;");
+    unset($GLOBALS['module_channels_loaded']);
+
+    $provider = makeRouteProvider(channels: $channelsFile);
+
+    // map() only runs when routes are not cached, so it must not be the place channels load.
+    $provider->map(app('router'));
+    expect($GLOBALS['module_channels_loaded'] ?? 0)->toBe(0);
+
+    $provider->boot();
+    expect($GLOBALS['module_channels_loaded'] ?? 0)->toBe(1);
+
+    unset($GLOBALS['module_channels_loaded']);
+    unlink($channelsFile);
+});

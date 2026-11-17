@@ -3,13 +3,15 @@
 namespace ErlandMuchasaj\Modules\Console\Commands;
 
 use ErlandMuchasaj\Modules\Support\ModuleCacheManager;
-use FilesystemIterator;
+use ErlandMuchasaj\Modules\Traits\MeasuresDirectorySize;
 use Illuminate\Console\Command;
 use Symfony\Component\Console\Attribute\AsCommand;
 
 #[AsCommand(name: 'module:analyze')]
 class ModuleAnalyzeCommand extends Command
 {
+    use MeasuresDirectorySize;
+
     /**
      * The name and signature of the console command.
      *
@@ -98,37 +100,5 @@ class ModuleAnalyzeCommand extends Command
                 $this->line("  → {$suggestion}");
             }
         }
-    }
-
-
-    protected function getDirectorySize(string $path): int
-    {
-        if (!is_dir($path)) {
-            return 0;
-        }
-
-        $size = 0;
-        $iterator = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($path, FilesystemIterator::SKIP_DOTS)
-        );
-
-        foreach ($iterator as $file) {
-            if ($file->isFile()) {
-                $size += $file->getSize();
-            }
-        }
-
-        return $size;
-    }
-
-    protected function formatBytes(int $bytes): string
-    {
-        $units = ['B', 'KB', 'MB', 'GB'];
-        $bytes = max($bytes, 0);
-        $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
-        $pow = min($pow, count($units) - 1);
-        $bytes /= (1 << (10 * $pow));
-
-        return round($bytes, 2) . ' ' . $units[$pow];
     }
 }

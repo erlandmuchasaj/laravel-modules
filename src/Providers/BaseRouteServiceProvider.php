@@ -57,6 +57,10 @@ abstract class BaseRouteServiceProvider extends ServiceProvider
     public function boot(): void
     {
         parent::boot();
+
+        // Broadcast channels are not part of the route cache, so they are loaded
+        // on every boot instead of in map(), which is skipped under route:cache.
+        $this->loadChannelsRoutes();
     }
 
     /**
@@ -64,23 +68,10 @@ abstract class BaseRouteServiceProvider extends ServiceProvider
      */
     public function map(Router $router): void
     {
-        // If the routes have not been cached, we will include them in a route group
-        // so that all the routes will be conveniently registered to the given
-        // controller namespace. After that we will load the EMCMS routes file.
-
-        // Skip if routes are cached
-        if ($this->routesAreCached()) {
-            return;
-        }
-
-        // mapApiRoutes
+        // The parent provider only calls map() when the routes are not cached.
         $this->mapApiRoutes();
 
-        // mapWebRoutes
         $this->mapWebRoutes();
-
-        // Channels
-        $this->loadChannelsRoutes();
     }
 
    /**

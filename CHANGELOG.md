@@ -2,6 +2,29 @@
 
 All notable changes to `erlandmuchasaj/laravel-modules` will be documented in this file.
 
+## Unreleased
+
+### Added
+- Laravel Boost support: an AI guideline (`resources/boost/guidelines/core.blade.php`) and the `laravel-modules-development` agent skill (`resources/boost/skills/laravel-modules-development/SKILL.md`) are picked up by `php artisan boost:install` / `boost:update`.
+
+### Changed
+- README rewritten to document the current commands, providers, routes, seeding orchestration, publish tags, stubs, testing and configuration.
+- `module:seed` validates the module name like the other commands (letters, numbers and underscores only) and trims the configured root namespace.
+- The modules folder/namespace are resolved in one place (`Support\ModulePaths`); module name parsing and directory size helpers are shared traits. No behaviour change for the generators.
+- The `Module` facade documents the `ModuleCacheManager` methods it proxies.
+- `module:make-model --factory` (and `--all`) adds a `newFactory()` override and the factory import to the model, so `Model::factory()` works without editing the file.
+
+### Fixed
+- Module broadcast channels (`routes/channels.php`) were registered in `map()`, which Laravel skips when routes are cached, so they disappeared after `php artisan route:cache`. They now load in `boot()`.
+- Standalone `module:make-factory Blog Post` wrote `database/factories/PostFactory.php` while declaring the namespace `...\Database\Factories\Post`, breaking PSR-4 autoloading. The file is now written where its namespace says (`database/factories/Post/PostFactory.php`).
+
+### Removed
+- **Config:** the `paths`, `seeds`, `discovery`, `cache` and `composer` sections of `config/modules.php`. The package never read them; only `namespace` and `folder` remain. Existing published configs keep working.
+- **`module:make --force`:** the option was declared but never used.
+- **`module:seed-clear`:** it cleared an in-memory list that is rebuilt on every boot, so it had no observable effect.
+- **`src/helpers.php`:** the `config_path()` / `public_path()` polyfills, which every supported Laravel version already defines. Run `composer update erlandmuchasaj/laravel-modules` so the stale autoload `files` entry is dropped.
+- Unused stubs (`facade`, `routes`, `migration*`, `rule.invokable*`, module `BroadcastServiceProvider` and `routes/console`), deprecated `$defaultName` properties (`#[AsCommand]` stays), no-op `$defer` / `provides()` on non-deferred providers, the Laravel < 9 language folder branch and commented-out code.
+
 ## 1.4.0 - 2026-11-12
 
 ### Added
