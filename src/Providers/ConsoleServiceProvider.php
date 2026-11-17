@@ -15,6 +15,7 @@ class ConsoleServiceProvider extends ServiceProvider
      */
     protected array $commands = [
         Commands\AppInstall::class,
+        Commands\ActionMakeCommand::class,
         Commands\CastMakeCommand::class,
         Commands\ScopeMakeCommand::class,
         Commands\ChannelMakeCommand::class,
